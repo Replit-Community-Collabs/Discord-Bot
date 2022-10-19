@@ -49,16 +49,36 @@ async def restart(ctx):
 
     sys.exit()
 
-@bot.hybrid_command(name='ping', description='Check bot latency', with_app_command=True, aliases=["pong", "p"])
+@bot.hybrid_command(name='ping', description='Check bot latency', with_app_command=True, aliases=["pong", "p"]) #extra pong code I had e lying around somewhere
 async def ping(ctx):
     await ctx.defer(ephemeral=True)
-    await ctx.reply(
-        embed=await create_embed(
-            title="Pong", description=f":ping_pong: Pong! :ping_pong:\nLatency: {round(bot.latency *1000, 2)}ms!", color=discord.Color.green()
-        )
-    )
+    if round(bot.latency * 1000) <= 50:
+        embed = discord.Embed(
+            title="PING",
+            description=
+            f":ping_pong: Pong! Bot's latency  is **{(bot.latency *1000)}** ms!",
+            color=0x44ff44)
+    elif round(bot.latency * 1000) <= 100:
+        embed = discord.Embed(
+            title="PING",
+            description=
+            f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
+            color=0xffd000)
+    elif round(bot.latency * 1000) <= 200:
+        embed = discord.Embed(
+            title="PING",
+            description=
+            f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
+            color=0xff6600)
+    else:
+        embed = discord.Embed(
+            title="PING",
+            description=
+            f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
+            color=0x990000)
+    await ctx.reply(embed=embed)
 
-    
+
     
 
 try:
