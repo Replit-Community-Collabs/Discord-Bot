@@ -59,14 +59,6 @@ async def ping(ctx):
     )
 
     
-@bot.hybrid_command(name='ping2', description='Check bot latency', with_app_command=True, aliases=["pong", "p"])
-async def ping2(ctx):
-    await ctx.defer(ephemeral=True)
-    await ctx.send(
-        embed=await create_embed(
-            title="Pong", description=f":ping_pong: Pong! :ping_pong:\nLatency: {round(bot.latency *1000, 2)}ms!", color=discord.Color.green()
-        )
-    )
     
 
 try:
