@@ -9,7 +9,7 @@ import sys
 
 load_dotenv()
 
-class Bot(commands.Bot):
+class Bot(commands.Bot): #cogs :eyes:
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
@@ -54,7 +54,7 @@ async def ping(ctx):
     await ctx.defer(ephemeral=True)
     await ctx.reply(
         embed=await create_embed(
-            title="Pong", description=f":ping_pong: Pong! :ping_pong:\nLatency: {round(bot.latency *1000, 2)}ms", color=discord.Color.green()
+            title="Pong", description=f":ping_pong: Pong! :ping_pong:\nLatency: {round(bot.latency *1000, 2)}ms!", color=discord.Color.green()
         )
     )
 
