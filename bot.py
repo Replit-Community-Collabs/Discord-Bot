@@ -9,9 +9,23 @@ import sys
 
 load_dotenv()
 
-intents = discord.Intents().all()
-bot = commands.Bot(command_prefix='r!', intents=intents, application_id=1032306356692205578)
-tree = app_commands.CommandTree(bot)
+class Bot(commands.Bot):
+    def __init__(self):
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(
+            command_prefix="r!", intents=intents
+        )
+
+    async def setup_hook(self):
+        await self.tree.sync()
+        print(f'Synced slash commands for {self.user}')
+
+    async def on_command_error(self, ctx, error):
+        await handle_error(ctx, error, ephemeral=True)
+
+
+bot = Bot()
 
 @bot.event
 async def on_ready():
@@ -20,28 +34,27 @@ async def on_ready():
     await bot.change_presence(status=discord.Status.online, activity=activity)
 
 
-@tree.command()
-async def kill(ctx):
+@bot.hybrid_command(name='restart', with_app_command=True, description='Restart the bot')
+@commands.has_permissions(administrator=True)
+async def restart(ctx):
+    await ctx.defer(ephemeral=True)
     if not ctx.author.guild_permissions.administrator:
-        await ctx.send(embed=await create_embed())
+        await ctx.reply(embed=await create_embed())
         return
-    await ctx.send(
+    await ctx.reply(
         embed=await create_embed(
             title="Restarting", description=f"Restart ordered by {ctx.author.mention}"
         )
     )
 
     sys.exit()
-    
-@kill.error
-async def kill_error_handler(ctx, error):
-    await handle_error(ctx, error)
 
-@bot.command(aliases=["pong", "p"]) #ping
+@bot.hybrid_command(name='ping', description='Check bot latency', with_app_command=True, aliases=["pong", "p"])
 async def ping(ctx):
-    await ctx.send(
+    await ctx.defer(ephemeral=True)
+    await ctx.reply(
         embed=await create_embed(
-            title="Pong", description=f":ping_pong: Pong, latancy: {round(bot.latency *1000, 2)}", color=discord.Color.green()
+            title="Pong", description=f":ping_pong: Pong! :ping_pong:\nLatency: {round(bot.latency *1000, 2)}ms", color=discord.Color.green()
         )
     )
 

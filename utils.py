@@ -10,14 +10,14 @@ async def create_embed(
     embed = discord.Embed(title=title, description=description, color=color, **kwargs)
     return embed
 
-async def handle_error(ctx, error):
+async def handle_error(ctx, error, ephemeral=True):
     if isinstance(error, commands.CommandOnCooldown):
-        await ctx.send(
+        await ctx.reply(
             embed=await create_embed(
-                description="You're on cooldown for {:.1f}s".format(error.retry_after)
+                description="You're on cooldown for {:.1f}s".format(error.retry_after), ephemeral=ephemeral
             )
         )
     elif isinstance(error, commands.DisabledCommand):
-        await ctx.send(embed=await create_embed(description='This command is disabled.'))
+        await ctx.reply(embed=await create_embed(description='This command is disabled.'), ephemeral=ephemeral)
     else:
-        await ctx.send(embed=await create_embed(description=error))
+        await ctx.reply(embed=await create_embed(description=error), ephemeral=ephemeral)
