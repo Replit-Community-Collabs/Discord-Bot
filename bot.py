@@ -30,7 +30,7 @@ bot = Bot()
 @bot.event
 async def on_ready():
     print("Ready")
-    activity = discord.Activity(type=discord.ActivityType.watching, name="Repls.best | Prefix: 'r!'")
+    activity = discord.Activity(type=discord.ActivityType.watching, name="Repls.best | Prefix: 'r!' and /")
     await bot.change_presence(status=discord.Status.online, activity=activity)
 
 
