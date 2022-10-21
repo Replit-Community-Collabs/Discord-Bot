@@ -32,6 +32,16 @@ async def on_ready():
     print("Ready")
     activity = discord.Activity(type=discord.ActivityType.watching, name="Repls.best | Prefix: 'r!' and /")
     await bot.change_presence(status=discord.Status.online, activity=activity)
+    
+    for filename in os.listdir('./cogs'): #cogs
+        if filename.endswith('.py'):
+            try:
+                client.load_extension(f'cogs.{filename[:-3]}')
+                print(f"{filename[:-3]} was loaded.")
+            except Exception as e:
+                print(e) 
+    else:
+      print(f'Unable to load {filename[:-3]}')
 
 
 @bot.hybrid_command(name='restart', with_app_command=True, description='Restart the bot')
