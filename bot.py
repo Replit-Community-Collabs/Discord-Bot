@@ -31,15 +31,11 @@ bot = Bot()
 @bot.event
 async def on_ready():
     print("Ready")
-    activity = discord.Activity(type=discord.ActivityType.watching, name="Repls.best | Prefix: 'r!' and /")
+    activity = discord.Activity(type=discord.ActivityType.watching, name="Repls.best, 'r!' and /")
     await bot.change_presence(status=discord.Status.online, activity=activity)
-    for cog in cogs:
-        try:
-            bot.load_extension(cog)
-            print(cog + " was loaded.")
-        except Exception as e:
-            print(e)  
-
+    for filename in os.listdir('./cogs'):
+      if filename.endswith('.py'):
+         await bot.load_extension(f'cogs.{filename[:-3]}')
 
 @bot.hybrid_command(name='restart', with_app_command=True, description='Restart the bot')
 @commands.has_permissions(administrator=True)
