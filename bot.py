@@ -89,7 +89,7 @@ async def ping(ctx):
     await ctx.reply(embed=embed)
 
 
-    
+
 
 try:
     bot.run(os.environ["BOT_TOKEN"])
