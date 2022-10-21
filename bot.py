@@ -35,7 +35,7 @@ async def on_ready():
     await bot.change_presence(status=discord.Status.online, activity=activity)
     for cog in cogs:
         try:
-            await bot.load_extension(cog)
+            bot.load_extension(cog)
             print(cog + " was loaded.")
         except Exception as e:
             print(e)  
