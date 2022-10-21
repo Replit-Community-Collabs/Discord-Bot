@@ -12,7 +12,8 @@ class test(commands.Cog):
 
   @commands.command() 
   async def test(self,ctx):
-    await ctx.send(f"Yes test works and cogs work!!!")
+    embed = create_embed(title="TEST", description="Yes! test command works and cogs work!!! (still gotta figure out how to do it with slash commands...")
+    await ctx.send(embed=embed)
     
 
 async def setup(client):
