@@ -86,5 +86,5 @@ async def ping(ctx):
 
 try:
     bot.run(os.environ["BOT_TOKEN"])
-except Exeption as e:
+except Exception as e:
     print(f"ERROR WITH LOGING IN: {e}")
