@@ -11,7 +11,7 @@ class test(commands.Cog):
     self.client = client
 
   @commands.command() 
-  async def test(self,ctx):
+  async def test(self,ctx): # used the embed function! - Raadsel
     embed = create_embed(title="TEST", description="Yes! test command works and cogs work!!! (still gotta figure out how to do it with slash commands...")
     await ctx.send(embed=embed)
     

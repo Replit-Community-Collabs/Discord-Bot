@@ -6,6 +6,7 @@ from utils import create_embed, handle_error
 
 import os
 import sys
+import time
 
 load_dotenv()
 cogs = ["cogs.modrepls"]
@@ -81,6 +82,24 @@ async def ping(ctx):
             color=0x990000)
     await ctx.reply(embed=embed)
 
+@bot.hybrid_command(
+    with_app_command=True,
+    name="floop",
+    description="Floop the specified user a certain amount of times",
+)
+async def floop(ctx, user: discord.Member, amount: int = 10):
+    if user.id == 915670836357247006:
+        await ctx.reply("No")
+        return
+    elif user.bot:
+        await ctx.reply("How do you expect me to floop a bot?")
+        return
+    elif amount > 1000:
+        await ctx.reply("That's too many floops!")
+        return
+    for i in range(amount):
+        await ctx.send(f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}")
+        time.sleep(0.5)
 
 
 
