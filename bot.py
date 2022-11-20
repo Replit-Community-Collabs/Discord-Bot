@@ -7,21 +7,28 @@ from utils import create_embed, handle_error
 import os
 import sys
 import time
+import random
+
+FLOOP_CHANNELS = [
+    1032000304343961630,
+    1032000304343961630,
+    1031690140025880660,
+    1032305788494037082,
+]
 
 load_dotenv()
 cogs = ["cogs.modrepls"]
 
-class Bot(commands.Bot): #cogs :eyes:
+
+class Bot(commands.Bot):  # cogs :eyes:
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
-        super().__init__(
-            command_prefix="r!", intents=intents
-        )
+        super().__init__(command_prefix="r!", intents=intents)
 
     async def setup_hook(self):
         await self.tree.sync()
-        print(f'Synced slash commands for {self.user}')
+        print(f"Synced slash commands for {self.user}")
 
     async def on_command_error(self, ctx, error):
         await handle_error(ctx, error, ephemeral=True)
@@ -29,16 +36,22 @@ class Bot(commands.Bot): #cogs :eyes:
 
 bot = Bot()
 
+
 @bot.event
 async def on_ready():
     print("Ready")
-    activity = discord.Activity(type=discord.ActivityType.watching, name="Repls.best, 'r!' and /")
+    activity = discord.Activity(
+        type=discord.ActivityType.watching, name="Repls.best, 'r!' and /"
+    )
     await bot.change_presence(status=discord.Status.online, activity=activity)
-    for filename in os.listdir('./cogs'):
-      if filename.endswith('.py'):
-         await bot.load_extension(f'cogs.{filename[:-3]}')
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py"):
+            await bot.load_extension(f"cogs.{filename[:-3]}")
 
-@bot.hybrid_command(name='restart', with_app_command=True, description='Restart the bot')
+
+@bot.hybrid_command(
+    name="restart", with_app_command=True, description="Restart the bot"
+)
 @commands.has_permissions(administrator=True)
 async def restart(ctx):
     await ctx.defer(ephemeral=True)
@@ -53,34 +66,41 @@ async def restart(ctx):
 
     sys.exit()
 
-@bot.hybrid_command(name='ping', description='Check bot latency', with_app_command=True, aliases=["pong", "p"]) #extra pong code I had e lying around somewhere
+
+@bot.hybrid_command(
+    name="ping",
+    description="Check bot latency",
+    with_app_command=True,
+    aliases=["pong", "p"],
+)  # extra pong code I had e lying around somewhere
 async def ping(ctx):
     await ctx.defer(ephemeral=True)
     if round(bot.latency * 1000) <= 50:
         embed = discord.Embed(
             title="PING",
-            description=
-            f":ping_pong: Pong! Bot's latency  is **{(bot.latency *1000)}** ms!",
-            color=0x44ff44)
+            description=f":ping_pong: Pong! Bot's latency  is **{(bot.latency *1000)}** ms!",
+            color=0x44FF44,
+        )
     elif round(bot.latency * 1000) <= 100:
         embed = discord.Embed(
             title="PING",
-            description=
-            f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
-            color=0xffd000)
+            description=f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
+            color=0xFFD000,
+        )
     elif round(bot.latency * 1000) <= 200:
         embed = discord.Embed(
             title="PING",
-            description=
-            f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
-            color=0xff6600)
+            description=f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
+            color=0xFF6600,
+        )
     else:
         embed = discord.Embed(
             title="PING",
-            description=
-            f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
-            color=0x990000)
+            description=f":ping_pong: Pong! Bot's latency  is **{round(bot.latency *1000)}** ms!",
+            color=0x990000,
+        )
     await ctx.reply(embed=embed)
+
 
 @bot.hybrid_command(
     with_app_command=True,
@@ -98,9 +118,16 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
         await ctx.reply("That's too many floops!")
         return
     for i in range(amount):
-        await ctx.send(f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}")
-        time.sleep(0.5)
-
+        if random.randint(1, 2) == 1:
+            channel = bot.get_channel(random.choice(FLOOP_CHANNELS))
+            time.sleep(random.randint(0, 27))
+            webhook = await channel.create_webhook(name="Floop")
+            await webhook.send(
+                f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}"
+            )
+            await webhook.delete()
+        else:
+            await user.send(f"FLOOP #{i + 1} - {ctx.author.name} flooped you!")
 
 
 try:
