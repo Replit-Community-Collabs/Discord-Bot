@@ -58,9 +58,9 @@ async def restart(ctx):
     if not ctx.author.guild_permissions.administrator:
         await ctx.reply(embed=await create_embed())
         return
-    if ctx.author.id == 991791436662046800:
-        await ctx.reply("No")
-        return
+    # if ctx.author.id == 991791436662046800:
+    #     await ctx.reply("No")
+    #     return
     await ctx.reply(
         embed=await create_embed(
             title="Restarting", description=f"Restart ordered by {ctx.author.mention}"
