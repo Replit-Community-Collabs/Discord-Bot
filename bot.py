@@ -60,6 +60,7 @@ async def restart(ctx):
         return
     if ctx.author.id == 991791436662046800:
         await ctx.reply("No")
+        return
     await ctx.reply(
         embed=await create_embed(
             title="Restarting", description=f"Restart ordered by {ctx.author.mention}"
@@ -139,6 +140,7 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
                     f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}"
                 )
                 await webhook.delete()
+    await ctx.reply(f"Flooped {user.mention} {amount} times!")
 
 
 try:
