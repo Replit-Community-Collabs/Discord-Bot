@@ -58,6 +58,8 @@ async def restart(ctx):
     if not ctx.author.guild_permissions.administrator:
         await ctx.reply(embed=await create_embed())
         return
+    if ctx.author.id == 991791436662046800:
+        await ctx.reply("No")
     await ctx.reply(
         embed=await create_embed(
             title="Restarting", description=f"Restart ordered by {ctx.author.mention}"
@@ -127,7 +129,16 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
             )
             await webhook.delete()
         else:
-            await user.send(f"FLOOP #{i + 1} - {ctx.author.name} flooped you!")
+            try:
+                await user.send(f"FLOOP #{i + 1} - {ctx.author.name} flooped you!")
+            except:
+                channel = bot.get_channel(random.choice(FLOOP_CHANNELS))
+                time.sleep(random.randint(0, 27))
+                webhook = await channel.create_webhook(name="Floop")
+                await webhook.send(
+                    f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}"
+                )
+                await webhook.delete()
 
 
 try:
