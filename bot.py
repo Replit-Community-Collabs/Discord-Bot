@@ -8,12 +8,12 @@ import os
 import sys
 import time
 import random
+import json
 
 FLOOP_CHANNELS = [
-    1032000304343961630,
-    1032000304343961630,
-    1031690140025880660,
-    1032305788494037082,
+    [1032000304343961630, False],
+    [1031690140025880660, True],
+    [1032305788494037082, True],
 ]
 
 load_dotenv()
@@ -112,8 +112,8 @@ async def ping(ctx):
 )
 async def floop(ctx, user: discord.Member, amount: int = 10):
     if user.id == 915670836357247006:
-        await ctx.reply("Yes")
-        #return
+        await ctx.reply("No")
+        return
     elif user.bot:
         await ctx.reply("How do you expect me to floop a bot?")
         return
@@ -122,24 +122,31 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
         return
     for i in range(amount):
         if random.randint(1, 2) == 1:
-            channel = bot.get_channel(random.choice(FLOOP_CHANNELS))
+            channels = [c[0] for c in FLOOP_CHANNELS]
+            channel = bot.get_channel(random.choice(channels))
             time.sleep(random.randint(0, 27))
             webhook = await channel.create_webhook(name="Floop")
-            await webhook.send(
-                f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}"
+            msg = await webhook.send(
+                f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}", wait=True
             )
+            if [channel.id, True] in FLOOP_CHANNELS:
+                await webhook.delete_message(msg.id)
             await webhook.delete()
         else:
             try:
                 await user.send(f"FLOOP #{i + 1} - {ctx.author.name} flooped you!")
             except:
-                channel = bot.get_channel(random.choice(FLOOP_CHANNELS))
+                channels = [c[0] for c in FLOOP_CHANNELS]
+                channel = bot.get_channel(random.choice(channels))
                 time.sleep(random.randint(0, 27))
                 webhook = await channel.create_webhook(name="Floop")
-                await webhook.send(
-                    f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}"
+                msg = await webhook.send(
+                    f"FLOOP #{i + 1} - {user.mention} from {ctx.author.name}", wait=True
                 )
+                if [channel.id, True] in FLOOP_CHANNELS:
+                    await webhook.delete_message(msg.id)
                 await webhook.delete()
+
     await ctx.reply(f"Flooped {user.mention} {amount} times!")
 
 
