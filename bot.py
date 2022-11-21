@@ -112,8 +112,8 @@ async def ping(ctx):
 )
 async def floop(ctx, user: discord.Member, amount: int = 10):
     if user.id == 915670836357247006:
-        await ctx.reply("No")
-        return
+        await ctx.reply("Yes")
+        #return
     elif user.bot:
         await ctx.reply("How do you expect me to floop a bot?")
         return
