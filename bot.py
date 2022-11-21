@@ -111,6 +111,7 @@ async def ping(ctx):
     description="Floop the specified user a certain amount of times",
 )
 async def floop(ctx, user: discord.Member, amount: int = 10):
+    blocked = False
     if user.id == 915670836357247006:
         await ctx.reply("No lol.")
         return
@@ -136,6 +137,9 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
             try:
                 await user.send(f"FLOOP #{i + 1} - {ctx.author.name} flooped you!")
             except:
+                if blocked == False:
+                    await ctx.author.send(embed=await create_embed(title='Oh no!', description=f'{user.mention} has blocked me. I am unable to floop them in DMs and have resorted to channels'))
+                blocked = True
                 channels = [c[0] for c in FLOOP_CHANNELS]
                 channel = bot.get_channel(random.choice(channels))
                 time.sleep(random.randint(0, 27))
