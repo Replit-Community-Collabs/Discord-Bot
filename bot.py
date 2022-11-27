@@ -219,6 +219,11 @@ async def list_all_repls(ctx):
         )
 
 
+@bot.hybrid_command(with_app_command=True, name="apply", description="Apply to be a RCC dev!")
+async def apply(ctx, *, application: str):
+    pass
+
+
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
 @commands.has_role(1045408918916055179)
 async def exec(ctx, *, command: str):
