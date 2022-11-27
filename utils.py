@@ -34,7 +34,8 @@ async def handle_error(ctx, error, ephemeral=True):
         await ctx.reply(
             embed=await create_embed(
                 description=f"There was an error while attempting this query:\n```json\n{data}\n```"
-            )
+            ),
+            ephemeral=ephemeral
         )
     else:
         await ctx.reply(
