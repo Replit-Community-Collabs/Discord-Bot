@@ -228,7 +228,7 @@ async def application(ctx):
 async def apply(ctx, *, application: str):
     channel = bot.get_channel(1046479555839410206)
 
-    embed = create_embed(
+    embed = await create_embed(
         title="New application",
         description=f"**{ctx.author.name}** has made a new application to be an RCC dev!\n\nApplication:```\n{application}\n```",
         color=discord.Color.yellow()
