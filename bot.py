@@ -248,6 +248,7 @@ async def apply(ctx, *, application: str):
 @application.command(name="vote", description="...")
 @commands.has_role(1045408918916055179)
 async def vote(ctx):
+    await ctx.defer(ephemeral=True)
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
     
