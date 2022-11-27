@@ -243,7 +243,7 @@ async def apply(ctx, *, application: str):
 
     thread = await msg.create_thread(name=ctx.author.name, reason="Application")
 
-    await ctx.reply(f"Your application has been created! View it at <#{thread}>!")
+    await ctx.reply(f"Your application has been created! View it at <#{thread.id}>!")
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
