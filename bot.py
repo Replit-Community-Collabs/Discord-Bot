@@ -252,7 +252,7 @@ async def vote(ctx):
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
     
-    starterMessage = await ctx.channel.fetch_message(ctx.channel.id)
+    starterMessage = ctx.channel.starter_message # To avoid having to edit too much, still using this variable.
 
     if starterMessage.author.id == bot.user.id and starterMessage.channel.id == 1046479555839410206:
         embed = starterMessage.embeds[0].copy()
