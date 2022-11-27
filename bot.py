@@ -168,10 +168,10 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
     description="Execute a GraphQL request.",
 )
 @commands.has_role(1045408918916055179)
-async def exec_gql(ctx, *, query: str):
+async def exec_gql(ctx, *, query: str, endpoint: str = "https://9abe713f-fe43-4eaf-9e93-ccaf2807f9d4.id.repl.co/graphql"):
     await ctx.defer(ephemeral=False)
     transport = AIOHTTPTransport(
-        url="https://9abe713f-fe43-4eaf-9e93-ccaf2807f9d4.id.repl.co/graphql"
+        url=endpoint
     )
     async with Client(transport=transport) as client:
         context = gql(query)
