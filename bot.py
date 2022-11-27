@@ -242,6 +242,7 @@ async def apply(ctx, *, application: str):
     )
 
     thread = await msg.create_thread(name=ctx.author.name, reason="Application")
+    thread.send("Hey! Could you post some of your previous works, and your Replit profile? Thanks!")
 
     await ctx.reply(f"Your application has been created! View it at <#{thread.id}>!")
 
