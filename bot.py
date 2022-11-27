@@ -220,8 +220,8 @@ async def list_all_repls(ctx):
 
 
 @bot.hybrid_command(with_app_command=True, name="apply", description="Apply to be a RCC dev!")
-async def apply(ctx, *, application: str):
-    pass
+async def apply(ctx):
+    await ctx.reply(f"Testing: {dir(ctx)}")
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
