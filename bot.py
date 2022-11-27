@@ -234,7 +234,7 @@ async def apply(ctx, *, application: str):
         color=discord.Color.yellow()
     )
 
-    embed.set_footer('0 👍 | 0 👎')
+    embed.set_footer(text="0 👍 | 0 👎")
 
     msg = await channel.send(
         content=f"<@{ctx.author.id}>",
