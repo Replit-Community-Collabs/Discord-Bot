@@ -224,23 +224,26 @@ async def application(ctx):
     # This is never used as a slash command - so this would be a fallback command.
     await ctx.reply("Want to apply to be an RCC dev? Use the `/application apply` command!")
 
-@application.command(name="apply", description="...")
+@application.command(name="apply", description="Apply to be an RCC dev!")
 async def apply(ctx, *, application: str):
     channel = bot.get_channel(1046479555839410206)
 
     embed = create_embed(
         title="New application",
-        description=f"**{ctx.author.username}** has made a new application to be an RCC dev!",
+        description=f"**{ctx.author.name}** has made a new application to be an RCC dev!\n\nApplication:```\n{application}\n```",
         color=discord.Color.yellow()
     )
 
     embed.set_footer('0 👍 | 0 👎')
 
     msg = await channel.send(
+        content=f"<@{ctx.author.id}>",
         embed=embed
     )
 
-    await msg.create_thread(name=ctx.author.username, reason="Application")
+    thread = await msg.create_thread(name=ctx.author.name, reason="Application")
+
+    await ctx.reply(f"Your application has been created! View it at <#{thread}>!")
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
