@@ -222,7 +222,7 @@ async def list_all_repls(ctx):
 @bot.hybrid_group(with_app_command=True, name="application", description="Apply to be a RCC dev!")
 async def application(ctx):
     # This is never used as a slash command - so this would be a fallback command.
-    await ctx.reply("Want to apply to be an RCC dev? Use the `/application apply` command!")
+    await ctx.reply("Want to apply to be an RCC dev? Use the `</application apply:1046497374626918541>` command!")
 
 @application.command(name="apply", description="Apply to be an RCC dev!")
 async def apply(ctx, *, application: str):
@@ -234,7 +234,7 @@ async def apply(ctx, *, application: str):
         color=discord.Color.yellow()
     )
 
-    embed.set_footer(text="0 👍 | 0 👎")
+    embed.set_footer(text="⬆️ 0 votes | 0")
 
     msg = await channel.send(
         content=f"<@{ctx.author.id}>",
@@ -244,6 +244,27 @@ async def apply(ctx, *, application: str):
     thread = await msg.create_thread(name=ctx.author.name, reason="Application")
 
     await ctx.reply(f"Your application has been created! View it at <#{thread.id}>!")
+
+@application.command(name="vote", description="...")
+@commands.has_role(1045408918916055179)
+async def vote(ctx):
+    if ctx.channel.type != discord.ChannelType.public_thread:
+        return await ctx.reply("You can only use this command in a thread.")
+    
+    starterMessage = await ctx.channel.fetch_message(ctx.channel.id)
+
+    if starterMessage.author.id == bot.user.id and starterMessage.channel.id == 1046479555839410206:
+        embed = starterMessage.embeds[0].copy()
+
+        votes = int(embed.footer.split('|')[1])+1
+
+        embed.set_footer(text=f"⬆️ {votes} votes | {votes}")
+
+        starterMessage.edit(embed=embed)
+        await ctx.reply("Your vote has been cast!")
+    else:
+        return await ctx.reply("This doesn't seem to be a valid application...")
+
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
