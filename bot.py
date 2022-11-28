@@ -24,8 +24,7 @@ load_dotenv()
 
 class Bot(commands.Bot):
     def __init__(self):
-        intents = discord.Intents.default()
-        intents.message_content = True
+        intents = discord.Intents.all()
         super().__init__(command_prefix="r!", intents=intents)
 
     async def setup_hook(self):
@@ -227,22 +226,31 @@ async def applications(ctx):
 @applications.command(name="apply", description="Apply to be an RCC dev!")
 async def apply(ctx, *, application: str):
     channel = bot.get_channel(1046479555839410206)
-
     embed = await create_embed(
-        title="New application",
-        description=f"**{ctx.author.name}#{ctx.author.discriminator} | {ctx.author.mention}** has made a new application to be an RCC dev!\n\nApplication:```\n{application}\n```",
+        title=f"New Application",
+        description=f"New application to be an RCC dev by {ctx.author.mention}!",
         color=discord.Color.yellow()
     )
-
-    embed.set_footer(text="⬆️ 0 votes | 0")
+    embed.add_field(name="Application", value=application)
+    embed.set_footer(text=f"Application by {ctx.author.name}#{ctx.author.discriminator}")
 
     msg = await channel.send(
-        content=f"<@{ctx.author.id}>",
         embed=embed
     )
+        # content=f"<@{ctx.author.id}>",
 
     thread = await msg.create_thread(name=ctx.author.name, reason="Application")
     await thread.send("Hey! Could you post some of your previous works, and your Replit profile? Thanks!")
+    with open("data/applications.json", "r+", encoding='utf-8') as f:
+        data = json.load(f)
+        data[str(thread.id)] = {
+            "applicant": ctx.author.id,
+            "name": f"{ctx.author.name}#{ctx.author.discriminator}",
+            "application": application,
+            "votes": 0,
+            "voters": [],
+        }
+        json.dump(data, f)
     await ctx.reply(f"Your application has been created! View it at {thread.mention}!")
 
 @applications.command(name="vote", description="...")
