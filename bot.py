@@ -220,17 +220,17 @@ async def list_all_repls(ctx):
 
 
 @bot.hybrid_group(with_app_command=True, name="application", description="Apply to be a RCC dev!")
-async def application(ctx):
+async def applications(ctx):
     # This is never used as a slash command - so this would be a fallback command.
     await ctx.reply("Want to apply to be an RCC dev? Use the `</application apply:1046497374626918541>` command!")
 
-@application.command(name="apply", description="Apply to be an RCC dev!")
+@applications.command(name="apply", description="Apply to be an RCC dev!")
 async def apply(ctx, *, application: str):
     channel = bot.get_channel(1046479555839410206)
 
     embed = await create_embed(
         title="New application",
-        description=f"**{ctx.author.name}** has made a new application to be an RCC dev!\n\nApplication:```\n{application}\n```",
+        description=f"**{ctx.author.name}#{ctx.author.discriminator} | {ctx.author.mention}** has made a new application to be an RCC dev!\n\nApplication:```\n{application}\n```",
         color=discord.Color.yellow()
     )
 
@@ -242,27 +242,26 @@ async def apply(ctx, *, application: str):
     )
 
     thread = await msg.create_thread(name=ctx.author.name, reason="Application")
-    thread.send("Hey! Could you post some of your previous works, and your Replit profile? Thanks!")
+    await thread.send("Hey! Could you post some of your previous works, and your Replit profile? Thanks!")
+    await ctx.reply(f"Your application has been created! View it at {thread.mention}!")
 
-    await ctx.reply(f"Your application has been created! View it at <#{thread.id}>!")
-
-@application.command(name="vote", description="...")
+@applications.command(name="vote", description="...")
 @commands.has_role(1045408918916055179)
 async def vote(ctx):
     await ctx.defer(ephemeral=True)
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
     
-    starterMessage = ctx.channel.starter_message # To avoid having to edit too much, still using this variable.
+    starter_message = ctx.channel.starter_message
 
-    if starterMessage.author.id == bot.user.id and starterMessage.channel.id == 1046479555839410206:
-        embed = starterMessage.embeds[0].copy()
+    if starter_message.author.id == bot.user.id and starter_message.channel.id == 1046479555839410206:
+        embed = starter_message.embeds[0].copy()
 
         votes = int(embed.footer.split('|')[1])+1
 
         embed.set_footer(text=f"⬆️ {votes} votes | {votes}")
 
-        starterMessage.edit(embed=embed)
+        starter_message.edit(embed=embed)
         await ctx.reply("Your vote has been cast!")
     else:
         return await ctx.reply("This doesn't seem to be a valid application...")
