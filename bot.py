@@ -16,7 +16,11 @@ import json
 with open("config.json") as f:
     data = json.load(f)
 
-FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL = data["CHANNELS"]["FLOOP_CHANNELS"], data["CHANNELS"]["APPLICATION_CHANNEL"], data["CHANNELS"]["IDEA_CHANNEL"]
+FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL = (
+    data["CHANNELS"]["FLOOP_CHANNELS"],
+    data["CHANNELS"]["APPLICATION_CHANNEL"],
+    data["CHANNELS"]["IDEA_CHANNEL"],
+)
 DEVELOPER_ROLE = data["ROLES"]["DEVELOPER"]
 NEWDEV_ROLE = data["ROLES"]["NEW_DEVELOPER"]
 BLACKLISTED_USERS = data["BLACKLIST"]["USERS"]
@@ -54,27 +58,27 @@ async def on_ready():
 
 
 # idea thing
-@bot.event 
+@bot.event
 async def on_message(ctx):
-    if ctx.author.bot: # ignore bots
+    if ctx.author.bot:  # ignore bots
         return
-    if ctx.channel.id == IDEA_CHANNEL: # check if the message is in the idea channel
-        if ctx.content.startswith('.'): return # allow users to comment things if they put a . in front of their message
+    if ctx.channel.id == IDEA_CHANNEL:  # check if the message is in the idea channel
+        if ctx.content.startswith("."):
+            return  # allow users to comment things if they put a . in front of their message
         await ctx.delete()
-        embed=await create_embed(
-                title=f"New idea by **{ctx.author.name}**",
-                description=ctx.content,
-            )
+        embed = await create_embed(
+            title=f"New idea by **{ctx.author.name}**",
+            description=ctx.content,
+        )
         embed.set_footer(text="Please vote on this idea!")
         msg = await ctx.channel.send(embed=embed)
-        crossM = bot.get_emoji(data["EMOTES"]["CHECKMARK"]) # get the emotes
-        checkM = bot.get_emoji(data["EMOTES"]["CROSSMARK"])
-        await msg.add_reaction(crossM) # add the reactions
-        await msg.add_reaction('😐')
+        crossM = await bot.get_emoji(data["EMOTES"]["CHECKMARK"])  # get the emotes
+        checkM = await bot.get_emoji(data["EMOTES"]["CROSSMARK"])
+        await msg.add_reaction(crossM)  # add the reactions
+        await msg.add_reaction("😐")
         await msg.add_reaction(checkM)
 
-
-    await bot.process_commands(ctx) # process commands
+    await bot.process_commands(ctx)  # process commands
 
 
 # !TODO - Write a custom check to check for either the developer role or the new developer role
@@ -90,8 +94,8 @@ async def restart(ctx):
         await ctx.reply(embed=await create_embed())
         return
     if ctx.author.id in BLACKLISTED_USERS:
-         await ctx.reply("No, you have been blacklisted from using this command.")
-         return
+        await ctx.reply("No, you have been blacklisted from using this command.")
+        return
     await ctx.reply(
         embed=await create_embed(
             title="Restarting", description=f"Restart ordered by {ctx.author.mention}"
@@ -270,8 +274,8 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
         color=discord.Color.yellow(),
     )
     embed.add_field(name="Application", value=application)
-    embed.add_field(name="Replit", value=f'https://replit.com/@{replit_username}')
-    embed.add_field(name="GitHub", value=f'https://github.com/{github_username}')
+    embed.add_field(name="Replit", value=f"https://replit.com/@{replit_username}")
+    embed.add_field(name="GitHub", value=f"https://github.com/{github_username}")
     embed.set_footer(
         text=f"Application by {ctx.author.name}#{ctx.author.discriminator}"
     )
@@ -286,7 +290,7 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
     with open("data/applications.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    with open('data/applications.json', 'w', encoding='utf-8') as f:
+    with open("data/applications.json", "w", encoding="utf-8") as f:
         data[str(thread.id)] = {
             "applicant": ctx.author.id,
             "name": f"{ctx.author.name}#{ctx.author.discriminator}",
@@ -309,7 +313,7 @@ async def vote(ctx):
 
     starter_message = ctx.channel.starter_message
 
-    with open('data/applications.json', 'r') as f:
+    with open("data/applications.json", "r") as f:
         applications_data = json.load(f)
 
     if (
