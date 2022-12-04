@@ -72,8 +72,8 @@ async def on_message(ctx):
         )
         embed.set_footer(text="Please vote on this idea!")
         msg = await ctx.channel.send(embed=embed)
-        crossM = await bot.get_emoji(data["EMOTES"]["CHECKMARK"])  # get the emotes
-        checkM = await bot.get_emoji(data["EMOTES"]["CROSSMARK"])
+        crossM = bot.get_emoji(data["EMOTES"]["CHECKMARK"])  # get the emotes
+        checkM = bot.get_emoji(data["EMOTES"]["CROSSMARK"])
         await msg.add_reaction(crossM)  # add the reactions
         await msg.add_reaction("😐")
         await msg.add_reaction(checkM)
@@ -311,25 +311,25 @@ async def vote(ctx):
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
 
-    starter_message = ctx.channel.starter_message
-
     with open("data/applications.json", "r") as f:
         applications_data = json.load(f)
 
-    if (
-        starter_message.author.id == bot.user.id
-        and starter_message.channel.id == 1046479555839410206
-    ):
-        embed = starter_message.embeds[0].copy()
+    if str(ctx.channel.id) not in applications_data.keys(): return await ctx.reply("This is not an application thread!")
 
-        votes = int(embed.footer.split("|")[1]) + 1
+    # if (
+    #     starter_message.author.id == bot.user.id
+    #     and starter_message.channel.id == 1046479555839410206
+    # ):
+    #     embed = starter_message.embeds[0].copy()
 
-        embed.set_footer(text=f"⬆️ {votes} votes | {votes}")
+    #     votes = int(embed.footer.split("|")[1]) + 1
 
-        starter_message.edit(embed=embed)
-        await ctx.reply("Your vote has been cast!")
-    else:
-        return await ctx.reply("This doesn't seem to be a valid application...")
+    #     embed.set_footer(text=f"⬆️ {votes} votes | {votes}")
+
+    #     starter_message.edit(embed=embed)
+    #     await ctx.reply("Your vote has been cast!")
+    # else:
+    #     return await ctx.reply("This doesn't seem to be a valid application...")
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
