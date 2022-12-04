@@ -1,8 +1,23 @@
 import discord
 from discord.ext import commands
+from discord.ext.commands import CheckFailure
 from gql.transport import exceptions as GQLExceptions
 import json
 
+class BlacklistError(CheckFailure):
+    """
+    Raised when a blacklisted user writes a command
+    """
+
+    pass
+
+async def check_user_in_blacklist(author):
+    with open("users.json", "r") as f:
+        users = json.load(f)
+    if author in users["blacklist"]:
+        return True
+    else:
+        return False
 
 async def create_embed(
     title="Command failed",
@@ -36,6 +51,11 @@ async def handle_error(ctx, error, ephemeral=True):
                 description=f"There was an error while attempting this query:\n```json\n{data}\n```"
             ),
             ephemeral=ephemeral
+        )
+    elif isinstance(error, BlacklistError):
+        await ctx.reply(
+            embed=await create_embed(description="You are blacklisted from this bot."),
+            ephemeral=ephemeral,
         )
     else:
         await ctx.reply(

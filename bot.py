@@ -13,11 +13,13 @@ import random
 import subprocess
 import json
 
-FLOOP_CHANNELS = [
-    [1032000304343961630, True],
-    [1031690140025880660, True],
-    [1032305788494037082, True],
-]
+with open("config.json") as f:
+    data = json.load(f)
+
+FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL = data["CHANNELS"]["FLOOP_CHANNELS"], data["CHANNELS"]["APPLICATION_CHANNEL"], data["CHANNELS"]["IDEA_CHANNEL"]
+DEVELOPER_ROLE = data["ROLES"]["DEVELOPER"]
+NEWDEV_ROLE = data["ROLES"]["NEW_DEVELOPER"]
+BLACKLISTED_USERS = data["BLACKLIST"]["USERS"]
 
 load_dotenv()
 
@@ -51,18 +53,45 @@ async def on_ready():
             await bot.load_extension(f"cogs.{filename[:-3]}")
 
 
+# idea thing
+@bot.event 
+async def on_message(ctx):
+    if ctx.author.bot: # ignore bots
+        return
+    if ctx.channel.id == IDEA_CHANNEL: # check if the message is in the idea channel
+        if ctx.content.startswith('.'): return # allow users to comment things if they put a . in front of their message
+        await ctx.delete()
+        embed=await create_embed(
+                title=f"New idea by **{ctx.author.name}**",
+                description=ctx.content,
+            )
+        embed.set_footer(text="Please vote on this idea!")
+        msg = ctx.channel.send(embed=embed)
+        crossM = bot.get_emoji(data["EMOTES"]["CHECKMARK"]) # get the emotes
+        checkM = bot.get_emoji(data["EMOTES"]["CROSSMARK"])
+        await msg.add_reaction(crossM) # add the reactions
+        await msg.add_reaction('😐')
+        await msg.add_reaction(checkM)
+
+
+    await bot.process_commands(ctx) # process commands
+
+
+# !TODO - Write a custom check to check for either the developer role or the new developer role
+
+
 @bot.hybrid_command(
     name="restart", with_app_command=True, description="Restart the bot"
 )
-@commands.has_role(1045408918916055179)
+@commands.has_role(DEVELOPER_ROLE)
 async def restart(ctx):
-    await ctx.defer(ephemeral=True)
+    await ctx.defer(ephemeral=False)
     if not ctx.author.guild_permissions.administrator:
         await ctx.reply(embed=await create_embed())
         return
-    # if ctx.author.id == 991791436662046800:
-    #     await ctx.reply("No")
-    #     return
+    if ctx.author.id in BLACKLISTED_USERS:
+         await ctx.reply("No, you have been blacklisted from using this command.")
+         return
     await ctx.reply(
         embed=await create_embed(
             title="Restarting", description=f"Restart ordered by {ctx.author.mention}"
@@ -166,12 +195,15 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
     name="exec_gql",
     description="Execute a GraphQL request.",
 )
-@commands.has_role(1045408918916055179)
-async def exec_gql(ctx, *, query: str, endpoint: str = "https://9abe713f-fe43-4eaf-9e93-ccaf2807f9d4.id.repl.co/graphql"):
+@commands.has_role(DEVELOPER_ROLE)
+async def exec_gql(
+    ctx,
+    *,
+    query: str,
+    endpoint: str = "https://9abe713f-fe43-4eaf-9e93-ccaf2807f9d4.id.repl.co/graphql",
+):
     await ctx.defer(ephemeral=False)
-    transport = AIOHTTPTransport(
-        url=endpoint
-    )
+    transport = AIOHTTPTransport(url=endpoint)
     async with Client(transport=transport) as client:
         context = gql(query)
         data = await client.execute(context)
@@ -190,7 +222,7 @@ async def exec_gql(ctx, *, query: str, endpoint: str = "https://9abe713f-fe43-4e
     name="list_all_repls",
     description="List all repls in the database",
 )
-@commands.has_role(1045408918916055179)
+@commands.has_role(DEVELOPER_ROLE)
 async def list_all_repls(ctx):
     await ctx.defer(ephemeral=False)
     transport = AIOHTTPTransport(
@@ -218,54 +250,75 @@ async def list_all_repls(ctx):
         )
 
 
-@bot.hybrid_group(with_app_command=True, name="application", description="Apply to be a RCC dev!")
+@bot.hybrid_group(
+    with_app_command=True, name="application", description="Apply to be a RCC dev!"
+)
 async def applications(ctx):
     # This is never used as a slash command - so this would be a fallback command.
-    await ctx.reply("Want to apply to be an RCC dev? Use the `</application apply:1046497374626918541>` command!")
+    await ctx.reply(
+        "Want to apply to be an RCC dev? Use the `</application apply:1046497374626918541>` command!"
+    )
+
 
 @applications.command(name="apply", description="Apply to be an RCC dev!")
-async def apply(ctx, *, application: str):
-    channel = bot.get_channel(1046479555839410206)
+async def apply(ctx, *, application: str, replit_username: str, github_username: str):
+    await ctx.defer(ephemeral=True)
+    channel = bot.get_channel(APPLICATION_CHANNEL)
     embed = await create_embed(
         title=f"New Application",
         description=f"New application to be an RCC dev by {ctx.author.mention}!",
-        color=discord.Color.yellow()
+        color=discord.Color.yellow(),
     )
     embed.add_field(name="Application", value=application)
-    embed.set_footer(text=f"Application by {ctx.author.name}#{ctx.author.discriminator}")
-
-    msg = await channel.send(
-        embed=embed
+    embed.add_field(name="Replit", value=f'https://replit.com/@{replit_username}')
+    embed.add_field(name="GitHub", value=f'https://github.com/{github_username}')
+    embed.set_footer(
+        text=f"Application by {ctx.author.name}#{ctx.author.discriminator}"
     )
-        # content=f"<@{ctx.author.id}>",
+
+    msg = await channel.send(embed=embed)
+    # content=f"<@{ctx.author.id}>",
 
     thread = await msg.create_thread(name=ctx.author.name, reason="Application")
-    await thread.send("Hey! Could you post some of your previous works, and your Replit profile? Thanks!")
-    with open("data/applications.json", "r+", encoding='utf-8') as f:
+    await thread.send(
+        "Hey! Thanks for applying to be an RCC Dev. We'll get back to you as soon as possible!"
+    )
+    with open("data/applications.json", "r", encoding="utf-8") as f:
         data = json.load(f)
+
+    with open('data/applications.json', 'w', encoding='utf-8') as f:
         data[str(thread.id)] = {
             "applicant": ctx.author.id,
             "name": f"{ctx.author.name}#{ctx.author.discriminator}",
             "application": application,
+            "replit": replit_username,
+            "github": github_username,
             "votes": 0,
             "voters": [],
         }
         json.dump(data, f)
     await ctx.reply(f"Your application has been created! View it at {thread.mention}!")
 
+
 @applications.command(name="vote", description="...")
-@commands.has_role(1045408918916055179)
+@commands.has_role(DEVELOPER_ROLE)
 async def vote(ctx):
     await ctx.defer(ephemeral=True)
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
-    
+
     starter_message = ctx.channel.starter_message
 
-    if starter_message.author.id == bot.user.id and starter_message.channel.id == 1046479555839410206:
+    with open('data/applications.json', 'r') as f:
+        applications_data = json.load(f)
+
+    if (
+        starter_message.author.id == bot.user.id
+        and starter_message.channel.id == 1046479555839410206
+    ):
         embed = starter_message.embeds[0].copy()
 
-        votes = int(embed.footer.split('|')[1])+1
+        votes = int(embed.footer.split("|")[1]) + 1
 
         embed.set_footer(text=f"⬆️ {votes} votes | {votes}")
 
@@ -275,9 +328,8 @@ async def vote(ctx):
         return await ctx.reply("This doesn't seem to be a valid application...")
 
 
-
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
-@commands.has_role(1045408918916055179)
+@commands.has_role(DEVELOPER_ROLE)
 async def exec(ctx, *, command: str):
     await ctx.defer(ephemeral=False)
     response = subprocess.run(
@@ -293,7 +345,11 @@ async def exec(ctx, *, command: str):
             )
         )
     else:
-        return await ctx.reply(embed=await create_embed(title=f'Oops!', description='Sorry, something went wrong!'))
+        return await ctx.reply(
+            embed=await create_embed(
+                title=f"Oops!", description="Sorry, something went wrong!"
+            )
+        )
 
 
 try:

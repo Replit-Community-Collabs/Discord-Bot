@@ -1,0 +1,26 @@
+{
+    "CHANNELS": {
+        "FLOOP_CHANNELS": [
+            [1032000304343961630, true],
+            [1031690140025880660, true],
+            [1032305788494037082, true]
+        ],
+        "APPLICATION_CHANNEL": 1048989285447122987,
+        "IDEA_CHANNEL": 1045409126202736670
+    },
+    "EMOTES": {
+        "CHECKMARK": 1048989413889282058,
+        "CROSSMARK": 1048989485339259031
+    },
+    "ROLES": {
+        "DEVELOPER": 1045408918916055179,
+        "NEW_DEVELOPER": 1046485274303148072
+    },
+    "WEBHOOKS": {
+        "APPLICATIONS": 1234
+    },
+    "BLACKLIST": {
+        "ROLES": [1234],
+        "USERS": [1234]
+    }
+}
