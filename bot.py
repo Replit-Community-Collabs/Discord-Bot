@@ -66,7 +66,7 @@ async def on_message(ctx):
                 description=ctx.content,
             )
         embed.set_footer(text="Please vote on this idea!")
-        msg = ctx.channel.send(embed=embed)
+        msg = await ctx.channel.send(embed=embed)
         crossM = bot.get_emoji(data["EMOTES"]["CHECKMARK"]) # get the emotes
         checkM = bot.get_emoji(data["EMOTES"]["CROSSMARK"])
         await msg.add_reaction(crossM) # add the reactions
