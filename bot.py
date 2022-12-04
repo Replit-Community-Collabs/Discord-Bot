@@ -12,18 +12,23 @@ import time
 import random
 import subprocess
 import json
+import asyncio
 
 with open("config.json") as f:
     data = json.load(f)
 
-FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL = (
+FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL, APPLICATION_LOGS = (
     data["CHANNELS"]["FLOOP_CHANNELS"],
     data["CHANNELS"]["APPLICATION_CHANNEL"],
     data["CHANNELS"]["IDEA_CHANNEL"],
+    data["CHANNELS"]["APPLICATION_LOGS"],
 )
-DEVELOPER_ROLE = data["ROLES"]["DEVELOPER"]
-NEWDEV_ROLE = data["ROLES"]["NEW_DEVELOPER"]
-BLACKLISTED_USERS = data["BLACKLIST"]["USERS"]
+DEVELOPER_ROLE, NEWDEV_ROLE, PRIORITY = (
+    data["ROLES"]["DEVELOPER"], 
+    data["ROLES"]["NEW_DEVELOPER"],
+    data["ROLES"]["PRIORITY"],
+)
+BLACKLISTED_USERS = data["BLACKLIST"]["USERS"] #this will be replaced with the other blacklist function thing of Dillon
 
 load_dotenv()
 
@@ -81,6 +86,24 @@ async def on_message(ctx):
     await bot.process_commands(ctx)  # process commands
 
 
+@bot.event
+async def on_raw_reaction_remove(payload):
+    reaction = str(payload.emoji)
+    msg_id = payload.message_id
+    user_id = payload.user_id
+    if payload.channel_id != IDEA_CHANNEL:
+        return
+
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    reaction = str(payload.emoji)
+    msg_id = payload.message_id
+    user_id = payload.user_id
+    if payload.channel_id != IDEA_CHANNEL:
+        return
+
+
 # !TODO - Write a custom check to check for either the developer role or the new developer role
 
 
@@ -93,9 +116,9 @@ async def restart(ctx):
     if not ctx.author.guild_permissions.administrator:
         await ctx.reply(embed=await create_embed())
         return
-    if ctx.author.id in BLACKLISTED_USERS:
-        await ctx.reply("No, you have been blacklisted from using this command.")
-        return
+    # if ctx.author.id in BLACKLISTED_USERS:
+    #     await ctx.reply("No, you have been blacklisted from using this command.")
+    #     return
     await ctx.reply(
         embed=await create_embed(
             title="Restarting", description=f"Restart ordered by {ctx.author.mention}"
@@ -103,6 +126,22 @@ async def restart(ctx):
     )
 
     sys.exit()
+
+
+@bot.hybrid_command(  # we do a little trolling - Raadsel
+    name="sudo", with_app_command=True, description="Sudo someone :eyes:"
+)
+@commands.has_role(DEVELOPER_ROLE)
+async def sudo(ctx, member: discord.Member, *, message=None):
+    if not ctx.author.guild_permissions.administrator:
+        await ctx.reply(embed=await create_embed())
+        return
+    #await ctx.message.delete() # doesnt work with slash commands
+    webhook = await ctx.channel.create_webhook(name=member.name)
+    await webhook.send(str(message), username=member.name, avatar_url=member.avatar.url)
+    await webhook.delete()
+    await ctx.defer(ephemeral=True)
+    await ctx.reply("Sudood {}".format(member.mention))
 
 
 @bot.hybrid_command(
@@ -220,6 +259,26 @@ async def exec_gql(
             )
         )
 
+@bot.hybrid_command(
+    with_app_command=True,
+    name="edit",
+    description="Edit a message",
+)
+@commands.has_permissions(manage_messages=True)
+async def edit(ctx, msg_id: int = None, channel: discord.TextChannel = None, *, message):
+    if not msg_id:
+        channel = bot.get_channel(112233445566778899) # the message's channel
+        msg_id = 998877665544332211 # the message's id
+    elif not channel:
+        channel = ctx.channel
+    msg = await channel.fetch_message(msg_id)
+    smt = await ctx.reply('editing it btw')
+    await msg.edit(content=message)
+    await asyncio.sleep(1)
+    await smt.edit(content=":white_check_mark: editted message!")
+
+
+
 
 @bot.hybrid_command(
     with_app_command=True,
@@ -273,19 +332,26 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
         description=f"New application to be an RCC dev by {ctx.author.mention}!",
         color=discord.Color.yellow(),
     )
-    embed.add_field(name="Application", value=application)
-    embed.add_field(name="Replit", value=f"https://replit.com/@{replit_username}")
-    embed.add_field(name="GitHub", value=f"https://github.com/{github_username}")
-    embed.set_footer(
-        text=f"Application by {ctx.author.name}#{ctx.author.discriminator}"
+    embed.add_field(name="Application", value=application, inline=False)
+    embed.add_field(
+        name="Replit", value=f"https://replit.com/@{replit_username}", inline=False
     )
-
+    embed.add_field(
+        name="GitHub", value=f"https://github.com/{github_username}", inline=False
+    )
+    embed.set_footer(
+        text=f"0 votes | {ctx.author.name}#{ctx.author.discriminator}",
+    )
+    log_channel = bot.get_channel(APPLICATION_LOGS)
     msg = await channel.send(embed=embed)
+    await log_channel.send(
+        f"**New Application**\n**App: **{application}\n\n**Replit:** https://replit.com/@{replit_username}\n**GitHub:** {github_username}\n\n{msg.jump_url}"
+    )
     # content=f"<@{ctx.author.id}>",
 
     thread = await msg.create_thread(name=ctx.author.name, reason="Application")
     await thread.send(
-        "Hey! Thanks for applying to be an RCC Dev. We'll get back to you as soon as possible!"
+        f"Hey! Thanks for applying to be an RCC Dev, {ctx.author.name}. We'll get back to you as soon as possible!"
     )
     with open("data/applications.json", "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -304,32 +370,63 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
     await ctx.reply(f"Your application has been created! View it at {thread.mention}!")
 
 
-@applications.command(name="vote", description="...")
+@applications.command(name="vote", description="Vote for an application!")
 @commands.has_role(DEVELOPER_ROLE)
 async def vote(ctx):
-    await ctx.defer(ephemeral=True)
+    await ctx.defer(ephemeral=False)
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
 
     with open("data/applications.json", "r") as f:
         applications_data = json.load(f)
 
-    if str(ctx.channel.id) not in applications_data.keys(): return await ctx.reply("This is not an application thread!")
+    if str(ctx.channel.id) not in applications_data.keys():
+        return await ctx.reply("This is not an application thread!")
+    elif ctx.author.id in applications_data[str(ctx.channel.id)]["voters"]:
+        return await ctx.reply("You have already voted!")
 
-    # if (
-    #     starter_message.author.id == bot.user.id
-    #     and starter_message.channel.id == 1046479555839410206
-    # ):
-    #     embed = starter_message.embeds[0].copy()
+    applications_data[str(ctx.channel.id)]["votes"] += 1
+    applications_data[str(ctx.channel.id)]["voters"].append(ctx.author.id)
+    with open('data/applications.json', 'w', encoding='utf-8') as f:
+        json.dump(applications_data, f, indent=4)
 
-    #     votes = int(embed.footer.split("|")[1]) + 1
+    await ctx.send(f'*{ctx.author.name} has voted!*')
 
-    #     embed.set_footer(text=f"⬆️ {votes} votes | {votes}")
+    starter_message = await ctx.channel.fetch_message(ctx.channel.id)
+    embed = starter_message.embeds[0].copy()
+    embed.set_footer(text=f"{applications_data[str(ctx.channel.id)]['votes']} vote(s) | {ctx.author.name}#{ctx.author.discriminator}")
+    await starter_message.edit(embed=embed)
 
-    #     starter_message.edit(embed=embed)
-    #     await ctx.reply("Your vote has been cast!")
-    # else:
-    #     return await ctx.reply("This doesn't seem to be a valid application...")
+
+
+@applications.command(name="unvote", description="Vote for an application!")
+@commands.has_role(DEVELOPER_ROLE)
+async def vote(ctx):
+    await ctx.defer(ephemeral=False)
+    if ctx.channel.type != discord.ChannelType.public_thread:
+        return await ctx.reply("You can only use this command in a thread.")
+
+    with open("data/applications.json", "r") as f:
+        applications_data = json.load(f)
+
+    if str(ctx.channel.id) not in applications_data.keys():
+        return await ctx.reply("This is not an application thread!")
+    elif ctx.author.id in applications_data[str(ctx.channel.id)]["voters"]:
+        return await ctx.reply("You have already voted!")
+
+    applications_data[str(ctx.channel.id)]["votes"] -= 1
+    applications_data[str(ctx.channel.id)]["voters"].remove(ctx.author.id)
+    with open('data/applications.json', 'w', encoding='utf-8') as f:
+        json.dump(applications_data, f, indent=4)
+
+    await ctx.send(f'*{ctx.author.name} has voted!*')
+
+    starter_message = await ctx.channel.fetch_message(ctx.channel.id)
+    embed = starter_message.embeds[0].copy()
+    embed.set_footer(text=f"{applications_data[str(ctx.channel.id)]['votes']} vote(s) | {ctx.author.name}#{ctx.author.discriminator}")
+    await starter_message.edit(embed=embed)
+
+
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")

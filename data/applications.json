@@ -1,11 +1,37 @@
 {
-	"1048995109045272656": {
-		"applicant": 915670836357247006,
-		"name": "DillonB07#2167",
-		"application": "Hello World!",
-		"replit": "DillonB07",
-		"github": "DillonB07",
-		"votes": 0,
-		"voters": []
-	}
+    "1049007603411333150": {
+        "applicant": 915670836357247006,
+        "name": "DillonB07#2167",
+        "application": "Hello World!",
+        "replit": "DillonB07",
+        "github": "DillonB07",
+        "votes": 2,
+        "voters": [
+            915670836357247006,
+            790232461052608554
+        ]
+    },
+    "1049019581311746109": {
+        "applicant": 803612750718697493,
+        "name": "bddy#5683",
+        "application": "j",
+        "replit": "j",
+        "github": "i",
+        "votes": 1,
+        "voters": [
+            915670836357247006
+        ]
+    },
+    "1049025656094216245": {
+        "applicant": 915670836357247006,
+        "name": "DillonB07#2167",
+        "application": "NEW APP",
+        "replit": "Dil",
+        "github": "Dil",
+        "votes": 2,
+        "voters": [
+            915670836357247006,
+            790232461052608554
+        ]
+    }
 }
