@@ -17,18 +17,22 @@ import asyncio
 with open("config.json") as f:
     data = json.load(f)
 
-FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL, APPLICATION_LOGS = (
+FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL, APPLICATION_LOGS, GENERAL = (
     data["CHANNELS"]["FLOOP_CHANNELS"],
     data["CHANNELS"]["APPLICATION_CHANNEL"],
     data["CHANNELS"]["IDEA_CHANNEL"],
     data["CHANNELS"]["APPLICATION_LOGS"],
+    data["CHANNELS"]["DEVELOPER_GENERAL"],
+    data["CHANNELS"]["GENERAL"],
 )
 DEVELOPER_ROLE, NEWDEV_ROLE, PRIORITY = (
-    data["ROLES"]["DEVELOPER"], 
+    data["ROLES"]["DEVELOPER"],
     data["ROLES"]["NEW_DEVELOPER"],
     data["ROLES"]["PRIORITY"],
 )
-BLACKLISTED_USERS = data["BLACKLIST"]["USERS"] #this will be replaced with the other blacklist function thing of Dillon
+BLACKLISTED_USERS = data["BLACKLIST"][
+    "USERS"
+]  # this will be replaced with the other blacklist function thing of Dillon
 
 load_dotenv()
 
@@ -136,7 +140,7 @@ async def sudo(ctx, member: discord.Member, *, message=None):
     if not ctx.author.guild_permissions.administrator:
         await ctx.reply(embed=await create_embed())
         return
-    #await ctx.message.delete() # doesnt work with slash commands
+    # await ctx.message.delete() # doesnt work with slash commands
     webhook = await ctx.channel.create_webhook(name=member.name)
     await webhook.send(str(message), username=member.name, avatar_url=member.avatar.url)
     await webhook.delete()
@@ -259,25 +263,26 @@ async def exec_gql(
             )
         )
 
+
 @bot.hybrid_command(
     with_app_command=True,
     name="edit",
     description="Edit a message",
 )
 @commands.has_permissions(manage_messages=True)
-async def edit(ctx, msg_id: int = None, channel: discord.TextChannel = None, *, message):
+async def edit(
+    ctx, msg_id: int = None, channel: discord.TextChannel = None, *, message
+):
     if not msg_id:
-        channel = bot.get_channel(112233445566778899) # the message's channel
-        msg_id = 998877665544332211 # the message's id
+        channel = bot.get_channel(112233445566778899)  # the message's channel
+        msg_id = 998877665544332211  # the message's id
     elif not channel:
         channel = ctx.channel
     msg = await channel.fetch_message(msg_id)
-    smt = await ctx.reply('editing it btw')
+    smt = await ctx.reply("editing it btw")
     await msg.edit(content=message)
     await asyncio.sleep(1)
-    await smt.edit(content=":white_check_mark: editted message!")
-
-
+    await smt.edit(content=":white_check_mark: edited message!")
 
 
 @bot.hybrid_command(
@@ -340,7 +345,7 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
         name="GitHub", value=f"https://github.com/{github_username}", inline=False
     )
     embed.set_footer(
-        text=f"0 votes | {ctx.author.name}#{ctx.author.discriminator}",
+        text=f"{ctx.author.name}#{ctx.author.discriminator}",
     )
     log_channel = bot.get_channel(APPLICATION_LOGS)
     msg = await channel.send(embed=embed)
@@ -373,7 +378,6 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
 @applications.command(name="vote", description="Vote for an application!")
 @commands.has_role(DEVELOPER_ROLE)
 async def vote(ctx):
-    await ctx.defer(ephemeral=False)
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
 
@@ -387,22 +391,26 @@ async def vote(ctx):
 
     applications_data[str(ctx.channel.id)]["votes"] += 1
     applications_data[str(ctx.channel.id)]["voters"].append(ctx.author.id)
-    with open('data/applications.json', 'w', encoding='utf-8') as f:
+    with open("data/applications.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
 
-    await ctx.send(f'*{ctx.author.name} has voted!*')
+    if applications_data[str(ctx.channel.id)]["votes"] >= 5:
+        user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
+        role = ctx.guild.get_role(NEWDEV_ROLE)
+        await user.add_roles(role)
+        challen = ctx.guild.get_channel(DEV_GENERAL)
+        return await ctx.send(
+            f"Congratulations {user.mention}! You have been accepted as an RCC Developer!\n{ctx.author.mention} cast the final vote!"
+        )
 
-    starter_message = await ctx.channel.fetch_message(ctx.channel.id)
-    embed = starter_message.embeds[0].copy()
-    embed.set_footer(text=f"{applications_data[str(ctx.channel.id)]['votes']} vote(s) | {ctx.author.name}#{ctx.author.discriminator}")
-    await starter_message.edit(embed=embed)
+    return await ctx.send(
+        f"*{ctx.author.name} has voted! There are {applications_data[str(ctx.channel.id)]['votes']} vote(s).*"
+    )
 
 
-
-@applications.command(name="unvote", description="Vote for an application!")
+@applications.command(name="unvote", description="Remove your vote for an application!")
 @commands.has_role(DEVELOPER_ROLE)
 async def vote(ctx):
-    await ctx.defer(ephemeral=False)
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
 
@@ -411,22 +419,17 @@ async def vote(ctx):
 
     if str(ctx.channel.id) not in applications_data.keys():
         return await ctx.reply("This is not an application thread!")
-    elif ctx.author.id in applications_data[str(ctx.channel.id)]["voters"]:
-        return await ctx.reply("You have already voted!")
+    elif ctx.author.id not in applications_data[str(ctx.channel.id)]["voters"]:
+        return await ctx.reply("You have not already voted!")
 
     applications_data[str(ctx.channel.id)]["votes"] -= 1
     applications_data[str(ctx.channel.id)]["voters"].remove(ctx.author.id)
-    with open('data/applications.json', 'w', encoding='utf-8') as f:
+    with open("data/applications.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
 
-    await ctx.send(f'*{ctx.author.name} has voted!*')
-
-    starter_message = await ctx.channel.fetch_message(ctx.channel.id)
-    embed = starter_message.embeds[0].copy()
-    embed.set_footer(text=f"{applications_data[str(ctx.channel.id)]['votes']} vote(s) | {ctx.author.name}#{ctx.author.discriminator}")
-    await starter_message.edit(embed=embed)
-
-
+    return await ctx.send(
+        f"*{ctx.author.name} has removed their vote. There are {applications_data[str(ctx.channel.id)]['votes']} vote(s).*"
+    )
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
