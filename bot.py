@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 from utils import create_embed, handle_error
+from data import *
 
 import os
 import sys
@@ -14,25 +15,7 @@ import subprocess
 import json
 import asyncio
 
-with open("config.json") as f:
-    data = json.load(f)
-
-FLOOP_CHANNELS, APPLICATION_CHANNEL, IDEA_CHANNEL, APPLICATION_LOGS, GENERAL = (
-    data["CHANNELS"]["FLOOP_CHANNELS"],
-    data["CHANNELS"]["APPLICATION_CHANNEL"],
-    data["CHANNELS"]["IDEA_CHANNEL"],
-    data["CHANNELS"]["APPLICATION_LOGS"],
-    data["CHANNELS"]["DEVELOPER_GENERAL"],
-    data["CHANNELS"]["GENERAL"],
-)
-DEVELOPER_ROLE, NEWDEV_ROLE, PRIORITY = (
-    data["ROLES"]["DEVELOPER"],
-    data["ROLES"]["NEW_DEVELOPER"],
-    data["ROLES"]["PRIORITY"],
-)
-BLACKLISTED_USERS = data["BLACKLIST"][
-    "USERS"
-]  # this will be replaced with the other blacklist function thing of Dillon
+# this will be replaced with the other blacklist function thing of Dillon
 
 load_dotenv()
 
@@ -81,8 +64,8 @@ async def on_message(ctx):
         )
         embed.set_footer(text="Please vote on this idea!")
         msg = await ctx.channel.send(embed=embed)
-        crossM = bot.get_emoji(data["EMOTES"]["CHECKMARK"])  # get the emotes
-        checkM = bot.get_emoji(data["EMOTES"]["CROSSMARK"])
+        crossM = bot.get_emoji(EMOJI_CHECKMARK)  # get the emotes
+        checkM = bot.get_emoji(EMOJI_CROSSMARK)
         await msg.add_reaction(crossM)  # add the reactions
         await msg.add_reaction("😐")
         await msg.add_reaction(checkM)
@@ -114,7 +97,7 @@ async def on_raw_reaction_add(payload):
 @bot.hybrid_command(
     name="restart", with_app_command=True, description="Restart the bot"
 )
-@commands.has_role(DEVELOPER_ROLE)
+@commands.has_role(ROLE_DEVELOPER)
 async def restart(ctx):
     await ctx.defer(ephemeral=False)
     if not ctx.author.guild_permissions.administrator:
@@ -135,7 +118,7 @@ async def restart(ctx):
 @bot.hybrid_command(  # we do a little trolling - Raadsel
     name="sudo", with_app_command=True, description="Sudo someone :eyes:"
 )
-@commands.has_role(DEVELOPER_ROLE)
+@commands.has_role(ROLE_DEVELOPER)
 async def sudo(ctx, member: discord.Member, *, message=None):
     if not ctx.author.guild_permissions.administrator:
         await ctx.reply(embed=await create_embed())
@@ -242,7 +225,7 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
     name="exec_gql",
     description="Execute a GraphQL request.",
 )
-@commands.has_role(DEVELOPER_ROLE)
+@commands.has_role(ROLE_DEVELOPER)
 async def exec_gql(
     ctx,
     *,
@@ -290,7 +273,7 @@ async def edit(
     name="list_all_repls",
     description="List all repls in the database",
 )
-@commands.has_role(DEVELOPER_ROLE)
+@commands.has_role(ROLE_DEVELOPER)
 async def list_all_repls(ctx):
     await ctx.defer(ephemeral=False)
     transport = AIOHTTPTransport(
@@ -376,7 +359,7 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
 
 
 @applications.command(name="vote", description="Vote for an application!")
-@commands.has_role(DEVELOPER_ROLE)
+@commands.has_role(ROLE_DEVELOPER)
 async def vote(ctx):
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
@@ -396,7 +379,7 @@ async def vote(ctx):
 
     if applications_data[str(ctx.channel.id)]["votes"] >= 5:
         user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
-        role = ctx.guild.get_role(NEWDEV_ROLE)
+        role = ctx.guild.get_role(ROLE_NEW_DEV)
         await user.add_roles(role)
         challen = ctx.guild.get_channel(DEV_GENERAL)
         return await ctx.send(
@@ -409,7 +392,7 @@ async def vote(ctx):
 
 
 @applications.command(name="unvote", description="Remove your vote for an application!")
-@commands.has_role(DEVELOPER_ROLE)
+@commands.has_role(ROLE_DEVELOPER)
 async def vote(ctx):
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
@@ -433,7 +416,7 @@ async def vote(ctx):
 
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
-@commands.has_role(DEVELOPER_ROLE)
+@commands.has_role(ROLE_DEVELOPER)
 async def exec(ctx, *, command: str):
     await ctx.defer(ephemeral=False)
     response = subprocess.run(
