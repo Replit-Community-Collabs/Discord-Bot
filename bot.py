@@ -69,7 +69,9 @@ async def on_message(ctx):
         await msg.add_reaction(crossM)  # add the reactions
         await msg.add_reaction("😐")
         await msg.add_reaction(checkM)
-
+        thread = await msg.create_thread(name=ctx.author.name, reason=f"Discussion of the idea from {ctx.author.name}") 
+        await thread.send( 
+         f"Hey! Thanks for the idea. This thread can be used to discuss the idea!")
     await bot.process_commands(ctx)  # process commands
 
 
