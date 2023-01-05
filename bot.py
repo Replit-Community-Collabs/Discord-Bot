@@ -356,6 +356,7 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
             "github": github_username,
             "votes": 0,
             "voters": [],
+            "locked": False,
         }
         json.dump(data, f)
     await ctx.reply(f"Your application has been created! View it at {thread.mention}!")
@@ -372,6 +373,8 @@ async def vote(ctx):
 
     if str(ctx.channel.id) not in applications_data.keys():
         return await ctx.reply("This is not an application thread!")
+    elif applications_data[str(ctx.channel.id)]["locked"]:
+        return await ctx.reply("This application has been locked!")
     elif ctx.author.id in applications_data[str(ctx.channel.id)]["voters"]:
         return await ctx.reply("You have already voted!")
 
@@ -384,7 +387,20 @@ async def vote(ctx):
         user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
         role = ctx.guild.get_role(ROLE_NEW_DEV)
         await user.add_roles(role)
-        challen = ctx.guild.get_channel(DEV_GENERAL)
+        chan = ctx.guild.get_channel(DEVELOPER_GENERAL)
+        await chan.send(
+            f"{user.mention} is now an RCC Developer! Welcome to the team! :tada: :tada: :tada:"
+        )
+        applications_data[str(ctx.channel.id)]["locked"] = True
+        with open("data/applications.json", "w", encoding="utf-8") as f:
+            json.dump(applications_data, f, indent=4)
+        await user.send(
+            embed=await create_embed(
+                title="Welcome!",
+                description=f"Welcome to the RCC Developer Team {user.name}! Please read <#{RESOURCES_CHANNEL}> and join the Replit and GitHub organisations as well as any other necessary teams for your role in the group!\n\nAlso, check out <#{DEVELOPER_GENERAL}> to chat with the other devs and you can suggest project ideas to be voted on inside of <#{IDEA_CHANNEL}>.",
+                color=discord.Color.green(),
+            )
+        )
         return await ctx.send(
             f"Congratulations {user.mention}! You have been accepted as an RCC Developer!\n{ctx.author.mention} cast the final vote!"
         )
@@ -405,6 +421,8 @@ async def vote(ctx):
 
     if str(ctx.channel.id) not in applications_data.keys():
         return await ctx.reply("This is not an application thread!")
+    elif applications_data[str(ctx.channel.id)]["locked"]:
+        return await ctx.reply("This application has been locked!")
     elif ctx.author.id not in applications_data[str(ctx.channel.id)]["voters"]:
         return await ctx.reply("You have not already voted!")
 
@@ -415,6 +433,41 @@ async def vote(ctx):
 
     return await ctx.send(
         f"*{ctx.author.name} has removed their vote. There are {applications_data[str(ctx.channel.id)]['votes']} vote(s).*"
+    )
+
+
+@applications.command(name="accept", description="Immediately accept the application")
+@commands.has_role(ROLE_PRIORITY)
+async def accept_application(ctx):
+    with open("data/applications.json", "r") as f:
+        applications_data = json.load(f)
+
+    if ctx.channel.type != discord.ChannelType.public_thread:
+        return await ctx.reply("You can only use this command in a thread.")
+    elif str(ctx.channel.id) not in applications_data.keys():
+        return await ctx.reply("This is not an application thread!")
+    elif applications_data[str(ctx.channel.id)]["locked"]:
+        return await ctx.reply("This application has been locked!")
+
+    user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
+    role = ctx.guild.get_role(ROLE_NEW_DEV)
+    await user.add_roles(role)
+    chan = ctx.guild.get_channel(DEVELOPER_GENERAL)
+    applications_data[str(ctx.channel.id)]["locked"] = True
+    with open("data/applications.json", "w", encoding="utf-8") as f:
+        json.dump(applications_data, f, indent=4)
+    await chan.send(
+        f"{user.mention} is now an RCC Developer! Welcome to the team! :tada: :tada: :tada:"
+    )
+    await user.send(
+        embed=await create_embed(
+            title="Welcome!",
+            description=f"Welcome to the RCC Developer Team {user.name}! Please read <#{RESOURCES_CHANNEL}> and join the Replit and GitHub organisations as well as any other necessary teams for your role in the group!\n\nAlso, check out <#{DEVELOPER_GENERAL}> to chat with the other devs and you can suggest project ideas to be voted on inside of <#{IDEA_CHANNEL}>.",
+            color=discord.Color.green(),
+        )
+    )
+    return await ctx.send(
+        f"Congratulations {user.mention}! You have been accepted as an RCC Developer!\n{ctx.author.mention} cast a priority vote!"
     )
 
 
