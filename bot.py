@@ -470,6 +470,33 @@ async def accept_application(ctx):
         f"Congratulations {user.mention}! You have been accepted as an RCC Developer!\n{ctx.author.mention} cast a priority vote!"
     )
 
+@applications.command(name="deny", description="Immediately deny the application")
+@commands.has_role(ROLE_PRIORITY)
+async def reject_application(ctx):
+    with open("data/applications.json", "r") as f:
+        applications_data = json.load(f)
+
+    if ctx.channel.type != discord.ChannelType.public_thread:
+        return await ctx.reply("You can only use this command in a thread.")
+    elif str(ctx.channel.id) not in applications_data.keys():
+        return await ctx.reply("This is not an application thread!")
+    elif applications_data[str(ctx.channel.id)]["locked"]:
+        return await ctx.reply("This application has been locked!")
+
+    applications_data[str(ctx.channel.id)]["locked"] = True
+    user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
+    with open("data/applications.json", "w", encoding="utf-8") as f:
+        json.dump(applications_data, f, indent=4)
+    await user.send(
+        embed=await create_embed(
+            title="Welcome!",
+            description=f"Welcome to the RCC Developer Team {user.name}! Please read <#{RESOURCES_CHANNEL}> and join the Replit and GitHub organisations as well as any other necessary teams for your role in the group!\n\nAlso, check out <#{DEVELOPER_GENERAL}> to chat with the other devs and you can suggest project ideas to be voted on inside of <#{IDEA_CHANNEL}>.",
+            color=discord.Color.green(),
+        )
+    )
+    return await ctx.send(
+        f"Sorry {user.mention}. Your application to be an RRC Dev has been rejected by {ctx.author.mention} with a priority vote!"
+    )
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
 @commands.has_role(ROLE_DEVELOPER)
