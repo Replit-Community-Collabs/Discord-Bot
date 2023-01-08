@@ -304,6 +304,12 @@ async def list_all_repls(ctx):
         )
 
 
+def GetDevelopers():
+    """Get all the ID's of RCC developers in the Discord"""
+    guild = bot.get_guild(GUILD_ID)
+    Devrole = discord.utils.get(guild.roles, id=ROLE_DEVELOPER)
+    return [m.id for m in Devrole.members]
+
 @bot.hybrid_group(
     with_app_command=True, name="application", description="Apply to be a RCC dev!"
 )
@@ -362,6 +368,7 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
     await ctx.reply(f"Your application has been created! View it at {thread.mention}!")
 
 
+
 @applications.command(name="vote", description="Vote for an application!")
 @commands.has_role(ROLE_DEVELOPER)
 async def vote(ctx):
@@ -382,8 +389,8 @@ async def vote(ctx):
     applications_data[str(ctx.channel.id)]["voters"].append(ctx.author.id)
     with open("data/applications.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
-
-    if applications_data[str(ctx.channel.id)]["votes"] >= 5:
+     
+    if applications_data[str(ctx.channel.id)]["votes"] >= int(len(GetDevelopers()) / 2): #Get the number of all the developers and splits it in half. This way 50% has to vote to accept someone.
         user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
         role = ctx.guild.get_role(ROLE_NEW_DEV)
         await user.add_roles(role)
@@ -412,7 +419,7 @@ async def vote(ctx):
 
 @applications.command(name="unvote", description="Remove your vote for an application!")
 @commands.has_role(ROLE_DEVELOPER)
-async def vote(ctx):
+async def unvote(ctx):
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
 

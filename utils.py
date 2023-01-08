@@ -20,11 +20,13 @@ async def check_user_in_blacklist(author):
         return False
 
 async def create_embed(
+
     title="Command failed",
     description="You don't have permission to use this command",
     color=discord.Color.red(),
     **kwargs,
 ):
+    """Returns an embed"""
     embed = discord.Embed(title=title, description=description, color=color, **kwargs)
     return embed
 
@@ -61,3 +63,6 @@ async def handle_error(ctx, error, ephemeral=True):
         await ctx.reply(
             embed=await create_embed(description=error), ephemeral=ephemeral
         )
+
+
+    
