@@ -44,6 +44,9 @@ async def on_ready():
         type=discord.ActivityType.watching, name="Repls.best, 'r!' and /"
     )
     await bot.change_presence(status=discord.Status.online, activity=activity)
+    for filename in os.listdir("./cogs"):
+        if filename.endswith(".py"):
+            await bot.load_extension(f"cogs.{filename[:-3]}")
 
 
 # idea thing
@@ -171,6 +174,7 @@ async def ping(ctx):
     name="floop",
     description="Floop the specified user a certain amount of times",
 )
+@commands.has_role(ROLE_DEVELOPER)
 async def floop(ctx, user: discord.Member, amount: int = 10):
     blocked = False
     if user.id == 915670836357247006:
