@@ -44,9 +44,6 @@ async def on_ready():
         type=discord.ActivityType.watching, name="Repls.best, 'r!' and /"
     )
     await bot.change_presence(status=discord.Status.online, activity=activity)
-    for filename in os.listdir("./cogs"):
-        if filename.endswith(".py"):
-            await bot.load_extension(f"cogs.{filename[:-3]}")
 
 
 # idea thing
