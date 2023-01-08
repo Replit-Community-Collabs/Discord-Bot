@@ -44,9 +44,7 @@ async def on_ready():
         type=discord.ActivityType.watching, name="Repls.best, 'r!' and /"
     )
     await bot.change_presence(status=discord.Status.online, activity=activity)
-    for filename in os.listdir("./cogs"):
-        if filename.endswith(".py"):
-            await bot.load_extension(f"cogs.{filename[:-3]}")
+   
 
 
 # idea thing
@@ -71,8 +69,10 @@ async def on_message(ctx):
         await msg.add_reaction(checkM)
         thread = await msg.create_thread(name=ctx.author.name)
         await thread.send(
-            f"Hey! Thanks for the idea. This thread can be used to discuss the idea!"
+            f"Hey! Thanks for the idea, {ctx.author.name}. This thread can be used to discuss the idea!"
         )
+        #! TODO: add idea to a data file so it can be editted by on_raw_reaction_add
+        
     await bot.process_commands(ctx)  # process commands
 
 
@@ -351,6 +351,8 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
     await thread.send(
         f"Hey! Thanks for applying to be an RCC Dev, {ctx.author.name}. We'll get back to you as soon as possible!"
     )
+    chan = bot.get_channel(DEVELOPER_GENERAL)
+    await chan.send(f'{ctx.author.name} has applied to be an RCC Dev in {thread.mention}')
     with open("data/applications.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -528,6 +530,7 @@ async def exec(ctx, *, command: str):
                 title=f"Oops!", description="Sorry, something went wrong!"
             )
         )
+
 
 
 try:
