@@ -3,3 +3,10 @@ __pycache__
 .DS_STORE
 venv/
 data/
+.replit
+.breakpoints
+replit.nix
+.config/
+.upm/
+poetry.lock
+pyproject.toml
