@@ -127,7 +127,8 @@ async def sudo(ctx, member: discord.Member, *, message=None):
         await ctx.reply(embed=await create_embed())
         return
     # await ctx.message.delete() # doesnt work with slash commands
-    webhook = await ctx.channel.create_webhook(name=member.name)
+    webhook = await ctx.channel.create_webhook(name=member.name, reason=f"{ctx.author.name} sudood {member.name}")
+    print(f"{ctx.author.name} sudood {member.name}")
     await webhook.send(str(message), username=member.name, avatar_url=member.avatar.url)
     await webhook.delete()
     await ctx.defer(ephemeral=True)
