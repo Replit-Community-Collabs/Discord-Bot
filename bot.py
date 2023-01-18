@@ -127,7 +127,8 @@ async def sudo(ctx, member: discord.Member, *, message=None):
         await ctx.reply(embed=await create_embed())
         return
     # await ctx.message.delete() # doesnt work with slash commands
-    webhook = await ctx.channel.create_webhook(name=member.name)
+    webhook = await ctx.channel.create_webhook(name=member.name, reason=f"{ctx.author.name} sudood {member.name}")
+    print(f"{ctx.author.name} sudood {member.name}")
     await webhook.send(str(message), username=member.name, avatar_url=member.avatar.url)
     await webhook.delete()
     await ctx.defer(ephemeral=True)
@@ -352,7 +353,7 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
         f"Hey! Thanks for applying to be an RCC Dev, {ctx.author.name}. We'll get back to you as soon as possible!"
     )
     chan = bot.get_channel(DEVELOPER_GENERAL)
-    await chan.send(f'{ctx.author.name} has applied to be an RCC Dev in {thread.mention}')
+    await chan.send(f'Hey <@{ROLE_DEVELOPER}>! {ctx.author.name} has applied to be an RCC Dev in {thread.mention}')
     with open("data/applications.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
