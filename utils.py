@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands import CheckFailure
 from gql.transport import exceptions as GQLExceptions
 import json
+from data import *
 
 class BlacklistError(CheckFailure):
     """
@@ -64,5 +65,11 @@ async def handle_error(ctx, error, ephemeral=True):
             embed=await create_embed(description=error), ephemeral=ephemeral
         )
 
-
+def isDeveloper():
+    """Returns True when the user has either the Developer or the New developer role"""
+    async def predicate(ctx):
+        roles = [r.id for r in ctx.author.roles]
+        return ROLE_DEVELOPER in roles or ROLE_NEW_DEV in roles
+    return commands.check(predicate)
+    
     
