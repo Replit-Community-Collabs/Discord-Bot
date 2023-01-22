@@ -513,6 +513,8 @@ async def reject_application(ctx):
 @commands.has_role(ROLE_DEVELOPER)
 async def exec(ctx, *, command: str):
     await ctx.defer(ephemeral=False)
+    if '.env' in command:
+        return await ctx.reply('Nice try :joy:')
     response = subprocess.run(
         command, shell=True, capture_output=True, text=True, timeout=10
     )
