@@ -65,11 +65,10 @@ async def handle_error(ctx, error, ephemeral=True):
             embed=await create_embed(description=error), ephemeral=ephemeral
         )
 
-def isDeveloper():
+def is_developer():
     """Returns True when the user has either the Developer or the New developer role"""
     async def predicate(ctx):
         roles = [r.id for r in ctx.author.roles]
         return ROLE_DEVELOPER in roles or ROLE_NEW_DEV in roles
     return commands.check(predicate)
-    
-    
+

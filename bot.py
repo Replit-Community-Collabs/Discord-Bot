@@ -4,7 +4,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
-from utils import create_embed, handle_error
+from utils import create_embed, handle_error, is_developer
 from data import *
 
 import os
@@ -72,7 +72,7 @@ async def on_message(ctx):
             f"Hey! Thanks for the idea, {ctx.author.name}. This thread can be used to discuss the idea!"
         )
         #! TODO: add idea to a data file so it can be editted by on_raw_reaction_add
-        
+
     await bot.process_commands(ctx)  # process commands
 
 
@@ -230,7 +230,7 @@ async def floop(ctx, user: discord.Member, amount: int = 10):
     name="exec_gql",
     description="Execute a GraphQL request.",
 )
-@commands.has_role(ROLE_DEVELOPER)
+@is_developer()
 async def exec_gql(
     ctx,
     *,
@@ -393,7 +393,7 @@ async def vote(ctx):
     applications_data[str(ctx.channel.id)]["voters"].append(ctx.author.id)
     with open("data/applications.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
-     
+
     if applications_data[str(ctx.channel.id)]["votes"] >= int(len(GetDevelopers()) / 2): #Get the number of all the developers and splits it in half. This way 50% has to vote to accept someone.
         user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
         role = ctx.guild.get_role(ROLE_NEW_DEV)
@@ -510,18 +510,20 @@ async def reject_application(ctx):
     )
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
-@commands.has_role(ROLE_DEVELOPER)
+@commands.has_role(1066782586527039518)
 async def exec(ctx, *, command: str):
     await ctx.defer(ephemeral=False)
-    if '.env' in command:
-        return await ctx.reply('Nice try :joy:')
+    banned = ['env', 'bot_token', 'atob', 'btoa', 'buffer', 'eval']
+    if command.lower() in banned:
+        responses = ['Nice try :joy:', 'Really?', 'Why do you think we\'re so stupid?', 'That is not funny.', ':rofl:', 'No.']
+        return await ctx.reply(random.choice(responses))
     response = subprocess.run(
         command, shell=True, capture_output=True, text=True, timeout=10
     )
     if response.returncode == 0:
         return await ctx.reply(
             embed=await create_embed(
-                title=f"Output for {command}",
+                title=f"Output for `{command}`",
                 description=f"""```bash
 {response.stdout}
 ```""",
@@ -534,7 +536,54 @@ async def exec(ctx, *, command: str):
             )
         )
 
+@bot.hybrid_group(
+    with_app_command=True, name="project", description="Manage projects"
+)
+@is_developer()
+async def project(ctx):
+    ctx.defer(ephemeral=False)
+    # This is never used as a slash command - so this would be a fallback command.
+    return await ctx.reply(
+        "You can use </project create:1066755598642839623> to create a project!"
+    )
 
+@project.command(with_app_command=True, name="create", description="Create a project")
+@is_developer()
+async def create_project(ctx, name: str, *, description: str):
+    projects_data = json.load(open("data/projects.json", "r"))
+    for project in projects_data['projects']:
+        if project['name'].lower() == name.lower():
+            return await ctx.reply("A project with that name already exists!", ephemeral=True)
+    embed = await create_embed(title=name, description=description, color=discord.Color.random())
+    embed.add_field(name="Project Lead", value=ctx.author.mention, inline=False)
+    embed.add_field(name='GitHub', value='Not linked', inline=False)
+    embed.add_field(name='Repl', value='Not linked', inline=False)
+    category = discord.utils.get(ctx.guild.categories, id=PROJECTS_CATEGORY)
+    channel = await ctx.guild.create_text_channel(name=name, reason=f'New project by {ctx.author.name}#{ctx.author.discriminator}', category=category)
+    await channel.send(embed=embed)
+    data = {
+        'channel': channel.id,
+        'name': name,
+        'description': description,
+        'lead': ctx.author.id,
+        'github': 'Not linked',
+        'replit': 'Not linked',
+        'members': [ctx.author.id]
+    }
+    projects_data['projects'].append(data)
+    json.dump(projects_data, open('data/projects.json', 'w'), indent=4)
+    return await ctx.reply(f'Project created! Check out {channel.mention}!')
+
+@project.command(with_app_command=True, name='github', description='Link a GitHub repository to a project')
+@is_developer()
+async def link_github(ctx, project: str, *, repo: str):
+    projects_data = json.load(open('data/projects.json', 'r'))
+    for project_data in projects_data['projects']:
+        if project_data['name'].lower() == project.lower():
+            project_data['github'] = repo
+            json.dump(projects_data, open('data/projects.json', 'w'), indent=4)
+            return await ctx.reply(f'Linked {repo} to {project_data["name"]}')
+    return await ctx.reply('No project with that name exists!', ephemeral=True)
 
 try:
     bot.run(os.environ["BOT_TOKEN"])
