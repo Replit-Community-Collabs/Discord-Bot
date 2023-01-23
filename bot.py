@@ -510,7 +510,8 @@ async def reject_application(ctx):
     )
 
 @bot.hybrid_command(with_app_command=True, name="exec", description="Execute a command")
-@commands.has_role(1066782586527039518)
+# @commands.has_role(1066782586527039518)
+@commands.is_owner()
 async def exec(ctx, *, command: str):
     await ctx.defer(ephemeral=False)
     banned = ['env', 'bot_token', 'atob', 'btoa', 'buffer', 'eval']
