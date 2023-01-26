@@ -615,6 +615,17 @@ async def link_repl(ctx, repl: str):
     await msg.edit(embed=embed)
     return await ctx.reply(f'Linked {repl} to {project_data["name"]}')
 
+@project.command(with_app_command=True, name='add', description='Add a user to the current project')
+@is_developer()
+async def add_user(ctx, user: discord.Member):
+    projects_data = json.load(open('data/projects.json', 'r'))
+    if ctx.channel.id not in [project['channel'] for project in projects_data['projects']]:
+        return await ctx.reply('This is not a project channel!', ephemeral=True)
+    project_data = projects_data['projects'][[project['channel'] for project in projects_data['projects']].index(ctx.channel.id)]
+    if ctx.author.id != project_data['lead']:
+        return await ctx.reply('You are not the project lead!', ephemeral=True)
+    projects_data['projects'][[project['channel'] for project in projects_data['projects']].index(ctx.channel.id)] = project_data
+
 
 try:
     bot.run(os.environ["BOT_TOKEN"])
