@@ -4,7 +4,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
-from utils import create_embed, handle_error, is_developer
+from utils import create_embed, handle_error, is_developer, GetDevelopers
 from data import *
 
 import os
@@ -304,12 +304,6 @@ async def list_all_repls(ctx):
             )
         )
 
-
-def GetDevelopers():
-    """Get all the ID's of RCC developers in the Discord"""
-    guild = bot.get_guild(GUILD_ID)
-    Devrole = discord.utils.get(guild.roles, id=ROLE_DEVELOPER)
-    return [m.id for m in Devrole.members]
 
 @bot.hybrid_group(
     with_app_command=True, name="application", description="Apply to be a RCC dev!"
