@@ -44,7 +44,6 @@ async def on_ready():
         type=discord.ActivityType.watching, name="Repls.best, 'r!' and /"
     )
     await bot.change_presence(status=discord.Status.online, activity=activity)
-   
 
 
 # idea thing
@@ -100,7 +99,7 @@ async def on_raw_reaction_add(payload):
 @bot.hybrid_command(
     name="restart", with_app_command=True, description="Restart the bot"
 )
-@commands.has_role(ROLE_DEVELOPER)
+@is_developer()
 async def restart(ctx):
     await ctx.defer(ephemeral=False)
     if not ctx.author.guild_permissions.administrator:
@@ -121,7 +120,7 @@ async def restart(ctx):
 @bot.hybrid_command(  # we do a little trolling - Raadsel
     name="sudo", with_app_command=True, description="Sudo someone :eyes:"
 )
-@commands.has_role(ROLE_DEVELOPER)
+@is_developer()
 async def sudo(ctx, member: discord.Member, *, message=None):
     if not ctx.author.guild_permissions.administrator:
         await ctx.reply(embed=await create_embed())
@@ -175,7 +174,7 @@ async def ping(ctx):
     name="floop",
     description="Floop the specified user a certain amount of times",
 )
-@commands.has_role(ROLE_DEVELOPER)
+@is_developer()
 async def floop(ctx, user: discord.Member, amount: int = 10):
     blocked = False
     if user.id == 915670836357247006:
@@ -278,7 +277,7 @@ async def edit(
     name="list_all_repls",
     description="List all repls in the database",
 )
-@commands.has_role(ROLE_DEVELOPER)
+@is_developer()
 async def list_all_repls(ctx):
     await ctx.defer(ephemeral=False)
     transport = AIOHTTPTransport(
@@ -354,10 +353,10 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
     )
     chan = bot.get_channel(DEVELOPER_GENERAL)
     await chan.send(f'Hey <@&{ROLE_DEVELOPER}>! {ctx.author.name} has applied to be an RCC Dev in {thread.mention}')
-    with open("data/applications.json", "r", encoding="utf-8") as f:
+    with open("data/application.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    with open("data/applications.json", "w", encoding="utf-8") as f:
+    with open("data/application.json", "w", encoding="utf-8") as f:
         data[str(thread.id)] = {
             "applicant": ctx.author.id,
             "name": f"{ctx.author.name}#{ctx.author.discriminator}",
@@ -374,12 +373,12 @@ async def apply(ctx, *, application: str, replit_username: str, github_username:
 
 
 @applications.command(name="vote", description="Vote for an application!")
-@commands.has_role(ROLE_DEVELOPER)
+@is_developer()
 async def vote(ctx):
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
 
-    with open("data/applications.json", "r") as f:
+    with open("data/application.json", "r") as f:
         applications_data = json.load(f)
 
     if str(ctx.channel.id) not in applications_data.keys():
@@ -391,7 +390,7 @@ async def vote(ctx):
 
     applications_data[str(ctx.channel.id)]["votes"] += 1
     applications_data[str(ctx.channel.id)]["voters"].append(ctx.author.id)
-    with open("data/applications.json", "w", encoding="utf-8") as f:
+    with open("data/application.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
 
     if applications_data[str(ctx.channel.id)]["votes"] >= int(len(GetDevelopers()) / 2): #Get the number of all the developers and splits it in half. This way 50% has to vote to accept someone.
@@ -403,7 +402,7 @@ async def vote(ctx):
             f"{user.mention} is now an RCC Developer! Welcome to the team! :tada: :tada: :tada:"
         )
         applications_data[str(ctx.channel.id)]["locked"] = True
-        with open("data/applications.json", "w", encoding="utf-8") as f:
+        with open("data/application.json", "w", encoding="utf-8") as f:
             json.dump(applications_data, f, indent=4)
         await user.send(
             embed=await create_embed(
@@ -422,12 +421,12 @@ async def vote(ctx):
 
 
 @applications.command(name="unvote", description="Remove your vote for an application!")
-@commands.has_role(ROLE_DEVELOPER)
+@is_developer()
 async def unvote(ctx):
     if ctx.channel.type != discord.ChannelType.public_thread:
         return await ctx.reply("You can only use this command in a thread.")
 
-    with open("data/applications.json", "r") as f:
+    with open("data/application.json", "r") as f:
         applications_data = json.load(f)
 
     if str(ctx.channel.id) not in applications_data.keys():
@@ -439,7 +438,7 @@ async def unvote(ctx):
 
     applications_data[str(ctx.channel.id)]["votes"] -= 1
     applications_data[str(ctx.channel.id)]["voters"].remove(ctx.author.id)
-    with open("data/applications.json", "w", encoding="utf-8") as f:
+    with open("data/application.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
 
     return await ctx.send(
@@ -450,7 +449,7 @@ async def unvote(ctx):
 @applications.command(name="accept", description="Immediately accept the application")
 @commands.has_role(ROLE_PRIORITY)
 async def accept_application(ctx):
-    with open("data/applications.json", "r") as f:
+    with open("data/application.json", "r") as f:
         applications_data = json.load(f)
 
     if ctx.channel.type != discord.ChannelType.public_thread:
@@ -465,7 +464,7 @@ async def accept_application(ctx):
     await user.add_roles(role)
     chan = ctx.guild.get_channel(DEVELOPER_GENERAL)
     applications_data[str(ctx.channel.id)]["locked"] = True
-    with open("data/applications.json", "w", encoding="utf-8") as f:
+    with open("data/application.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
     await chan.send(
         f"{user.mention} is now an RCC Developer! Welcome to the team! :tada: :tada: :tada:"
@@ -484,7 +483,7 @@ async def accept_application(ctx):
 @applications.command(name="deny", description="Immediately deny the application")
 @commands.has_role(ROLE_PRIORITY)
 async def reject_application(ctx):
-    with open("data/applications.json", "r") as f:
+    with open("data/application.json", "r") as f:
         applications_data = json.load(f)
 
     if ctx.channel.type != discord.ChannelType.public_thread:
@@ -496,7 +495,7 @@ async def reject_application(ctx):
 
     applications_data[str(ctx.channel.id)]["locked"] = True
     user = ctx.guild.get_member(applications_data[str(ctx.channel.id)]["applicant"])
-    with open("data/applications.json", "w", encoding="utf-8") as f:
+    with open("data/application.json", "w", encoding="utf-8") as f:
         json.dump(applications_data, f, indent=4)
     await user.send(
         embed=await create_embed(
@@ -561,9 +560,10 @@ async def create_project(ctx, name: str, *, description: str):
     embed.add_field(name='Repl', value='Not linked', inline=False)
     category = discord.utils.get(ctx.guild.categories, id=PROJECTS_CATEGORY)
     channel = await ctx.guild.create_text_channel(name=name, reason=f'New project by {ctx.author.name}#{ctx.author.discriminator}', category=category)
-    await channel.send(embed=embed)
+    msg = await channel.send(embed=embed)
     data = {
         'channel': channel.id,
+        'starter': msg.id,
         'name': name,
         'description': description,
         'lead': ctx.author.id,
@@ -577,14 +577,23 @@ async def create_project(ctx, name: str, *, description: str):
 
 @project.command(with_app_command=True, name='github', description='Link a GitHub repository to a project')
 @is_developer()
-async def link_github(ctx, project: str, *, repo: str):
+async def link_github(ctx, repo: str):
     projects_data = json.load(open('data/projects.json', 'r'))
-    for project_data in projects_data['projects']:
-        if project_data['name'].lower() == project.lower():
-            project_data['github'] = repo
-            json.dump(projects_data, open('data/projects.json', 'w'), indent=4)
-            return await ctx.reply(f'Linked {repo} to {project_data["name"]}')
-    return await ctx.reply('No project with that name exists!', ephemeral=True)
+    if ctx.channel.id not in [project['channel'] for project in projects_data['projects']]:
+        return await ctx.reply('This is not a project channel!', ephemeral=True)
+    project_data = projects_data['projects'][[project['channel'] for project in projects_data['projects']].index(ctx.channel.id)]
+    project_data['github'] = repo
+    msg = await ctx.channel.fetch_message(project_data['starter'])
+    await ctx.send(project_data)
+    lead = ctx.guild.get_member(project_data['lead'])
+    embed = await create_embed(title=project_data['name'], description=project_data[''], color=discord.Color.random())
+    embed.add_field(name="Project Lead", value=lead.mention, inline=False)
+    embed.add_field(name='GitHub', value=project_data['github'], inline=False)
+    embed.add_field(name='Repl', value=project_data['replit'], inline=False)
+    embed.add_field(name='Members', value=project_data['members'], inline=False)
+    await msg.edit(embed=embed)
+    return await ctx.reply(f'Linked {repo} to {project_data["name"]}')
+
 
 try:
     bot.run(os.environ["BOT_TOKEN"])

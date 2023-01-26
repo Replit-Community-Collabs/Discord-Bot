@@ -2,7 +2,7 @@
 __pycache__
 .DS_STORE
 venv
-data
+data/*
 .replit
 .breakpoints
 replit.nix
