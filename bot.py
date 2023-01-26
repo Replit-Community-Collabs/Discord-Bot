@@ -575,7 +575,7 @@ async def create_project(ctx, name: str, *, description: str):
     json.dump(projects_data, open('data/projects.json', 'w'), indent=4)
     return await ctx.reply(f'Project created! Check out {channel.mention}!')
 
-@project.command(with_app_command=True, name='github', description='Link a GitHub repository to a project')
+@project.command(with_app_command=True, name='github', description='Link a GitHub repository to the current project')
 @is_developer()
 async def link_github(ctx, repo: str):
     projects_data = json.load(open('data/projects.json', 'r'))
@@ -583,16 +583,37 @@ async def link_github(ctx, repo: str):
         return await ctx.reply('This is not a project channel!', ephemeral=True)
     project_data = projects_data['projects'][[project['channel'] for project in projects_data['projects']].index(ctx.channel.id)]
     project_data['github'] = repo
+    projects_data['projects'][[project['channel'] for project in projects_data['projects']].index(ctx.channel.id)] = project_data
+    json.dump(projects_data, open('data/projects.json', 'w'), indent=4)
     msg = await ctx.channel.fetch_message(project_data['starter'])
-    await ctx.send(project_data)
     lead = ctx.guild.get_member(project_data['lead'])
-    embed = await create_embed(title=project_data['name'], description=project_data[''], color=discord.Color.random())
+    embed = await create_embed(title=project_data['name'], description=project_data['description'], color=discord.Color.random())
     embed.add_field(name="Project Lead", value=lead.mention, inline=False)
     embed.add_field(name='GitHub', value=project_data['github'], inline=False)
     embed.add_field(name='Repl', value=project_data['replit'], inline=False)
     embed.add_field(name='Members', value=project_data['members'], inline=False)
     await msg.edit(embed=embed)
     return await ctx.reply(f'Linked {repo} to {project_data["name"]}')
+
+@project.command(with_app_command=True, name='repl', description='Link a Replit repl to the current project')
+@is_developer()
+async def link_repl(ctx, repl: str):
+    projects_data = json.load(open('data/projects.json', 'r'))
+    if ctx.channel.id not in [project['channel'] for project in projects_data['projects']]:
+        return await ctx.reply('This is not a project channel!', ephemeral=True)
+    project_data = projects_data['projects'][[project['channel'] for project in projects_data['projects']].index(ctx.channel.id)]
+    project_data['replit'] = repl
+    projects_data['projects'][[project['channel'] for project in projects_data['projects']].index(ctx.channel.id)] = project_data
+    json.dump(projects_data, open('data/projects.json', 'w'), indent=4)
+    msg = await ctx.channel.fetch_message(project_data['starter'])
+    lead = ctx.guild.get_member(project_data['lead'])
+    embed = await create_embed(title=project_data['name'], description=project_data['description'], color=discord.Color.random())
+    embed.add_field(name="Project Lead", value=lead.mention, inline=False)
+    embed.add_field(name='GitHub', value=project_data['github'], inline=False)
+    embed.add_field(name='Repl', value=project_data['replit'], inline=False)
+    embed.add_field(name='Members', value=project_data['members'], inline=False)
+    await msg.edit(embed=embed)
+    return await ctx.reply(f'Linked {repl} to {project_data["name"]}')
 
 
 try:
