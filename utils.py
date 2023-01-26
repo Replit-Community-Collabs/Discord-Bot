@@ -72,3 +72,9 @@ def is_developer():
         return ROLE_DEVELOPER in roles or ROLE_NEW_DEV in roles
     return commands.check(predicate)
 
+def GetDevelopers():
+    """Get all the ID's of RCC developers in the Discord server"""
+    guild = bot.get_guild(GUILD_ID)
+    Devrole = discord.utils.get(guild.roles, id=ROLE_DEVELOPER)
+    return [m.id for m in Devrole.members]
+
