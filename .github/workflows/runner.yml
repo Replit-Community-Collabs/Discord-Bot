@@ -17,5 +17,8 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
 
+      - name: Display Logs
+        run: python3 -m exendlr RCC-Discord-Bot "ready"
+
       - name: Cleanup Unused Images
         run: docker image prune -f
