@@ -507,6 +507,8 @@ async def reject_application(ctx):
 #@commands.is_owner()
 async def exec(ctx, *, command: str):
     await ctx.defer(ephemeral=False)
+    if ctx.author.id in [834479429748654101,803612750718697493]:
+        return await ctx.send('Not a chance.')
     banned = ['env', 'bot_token', 'atob', 'btoa', 'buffer', 'eval']
     if command.lower() in banned:
         responses = ['Nice try :joy:', 'Really?', 'Why do you think we\'re so stupid?', 'That is not funny.', ':rofl:', 'No.']
