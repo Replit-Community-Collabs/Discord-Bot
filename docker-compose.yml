@@ -7,3 +7,4 @@ services:
       - ./data:/app/data
     environment:
       - BOT_TOKEN
+    restart: always
